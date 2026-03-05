@@ -1,45 +1,51 @@
 'use client'
 import { useEffect, useState, useRef, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
-import { Send } from 'lucide-react'
+import { Send, ArrowLeft } from 'lucide-react'
 
-type Message = {
-  id: string
-  sender_id: string
-  receiver_id: string
-  content: string
-  created_at: string
-  read: boolean
-}
-
-type Profile = {
-  id: string
-  name: string
-  country: string
-}
+type Profile = { id: string; name: string; country: string; role: string }
+type Message = { id: string; sender_id: string; content: string; created_at: string }
+type Conversation = { id: string; other: Profile; lastMsg: string; unread: number }
 
 function MessagesContent() {
   const { user } = useAuth()
   const searchParams = useSearchParams()
-  const [conversations, setConversations] = useState<Profile[]>([])
-  const [activeProfile, setActiveProfile] = useState<Profile | null>(null)
+  const router = useRouter()
+  const toId = searchParams.get('to')
+
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [activeConvo, setActiveConvo] = useState<Conversation | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [newMsg, setNewMsg] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [mobileView, setMobileView] = useState<'list' | 'chat'>('list')
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    if (!user) return
-    fetchConversations()
-  }, [user])
+  useEffect(() => { if (user) fetchConversations() }, [user])
 
   useEffect(() => {
-    if (activeProfile) fetchMessages(activeProfile.id)
-  }, [activeProfile])
+    if (!user || !toId) return
+    startOrOpenConvo(toId)
+  }, [user, toId])
+
+  useEffect(() => {
+    if (!activeConvo) return
+    fetchMessages(activeConvo.id)
+    const channel = supabase
+      .channel('messages-' + activeConvo.id)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'messages',
+        filter: `conversation_id=eq.${activeConvo.id}`
+      }, payload => {
+        setMessages(prev => [...prev, payload.new as Message])
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [activeConvo])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -47,171 +53,204 @@ function MessagesContent() {
 
   async function fetchConversations() {
     const { data } = await supabase
-      .from('messages')
-      .select('sender_id, receiver_id')
-      .or(`sender_id.eq.${user!.id},receiver_id.eq.${user!.id}`)
+      .from('conversations')
+      .select('*, volunteer:volunteer_id(id,name,country,role), seeker:seeker_id(id,name,country,role)')
+      .or(`volunteer_id.eq.${user!.id},seeker_id.eq.${user!.id}`)
+      .order('created_at', { ascending: false })
 
     if (!data) return setLoading(false)
 
-    const otherIds = [...new Set(data.map(m =>
-      m.sender_id === user!.id ? m.receiver_id : m.sender_id
-    ))]
+    const convos: Conversation[] = await Promise.all(data.map(async (c: any) => {
+      const other = c.volunteer_id === user!.id ? c.seeker : c.volunteer
+      const { data: msgs } = await supabase
+        .from('messages')
+        .select('content')
+        .eq('conversation_id', c.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+      return { id: c.id, other, lastMsg: msgs?.[0]?.content || 'No messages yet', unread: 0 }
+    }))
 
-    if (otherIds.length === 0) return setLoading(false)
-
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, name, country')
-      .in('id', otherIds)
-
-    if (profiles) setConversations(profiles)
+    setConversations(convos)
     setLoading(false)
   }
 
-  async function fetchMessages(otherId: string) {
+  async function startOrOpenConvo(otherId: string) {
+    const { data: profile } = await supabase
+      .from('profiles').select('*').eq('id', otherId).single()
+    if (!profile) return
+
+    const myRole = profile.role === 'volunteer' ? 'seeker' : 'volunteer'
+
+    const volunteerIdVal = profile.role === 'volunteer' ? otherId : user!.id
+    const seekerIdVal = profile.role === 'volunteer' ? user!.id : otherId
+
+    // Check if convo exists
+    const { data: existing } = await supabase
+      .from('conversations')
+      .select('*')
+      .eq('volunteer_id', volunteerIdVal)
+      .eq('seeker_id', seekerIdVal)
+      .single()
+
+    let convoId = existing?.id
+    if (!convoId) {
+      const { data: newConvo } = await supabase
+        .from('conversations')
+        .insert({ volunteer_id: volunteerIdVal, seeker_id: seekerIdVal })
+        .select().single()
+      convoId = newConvo?.id
+    }
+
+    if (convoId) {
+      const convo: Conversation = { id: convoId, other: profile, lastMsg: '', unread: 0 }
+      setActiveConvo(convo)
+      setMobileView('chat')
+      fetchConversations()
+    }
+  }
+
+  async function fetchMessages(convoId: string) {
     const { data } = await supabase
       .from('messages')
       .select('*')
-      .or(
-        `and(sender_id.eq.${user!.id},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${user!.id})`
-      )
+      .eq('conversation_id', convoId)
       .order('created_at', { ascending: true })
-
     if (data) setMessages(data)
   }
 
   async function sendMessage() {
-    if (!newMsg.trim() || !activeProfile || !user) return
+    if (!newMsg.trim() || !activeConvo || !user) return
     setSending(true)
-    const { error } = await supabase.from('messages').insert({
+    await supabase.from('messages').insert({
       sender_id: user.id,
-      receiver_id: activeProfile.id,
+      receiver_id: activeConvo.other.id,
       content: newMsg.trim(),
+      conversation_id: activeConvo.id,
     })
-    if (!error) {
-      setNewMsg('')
-      fetchMessages(activeProfile.id)
-    }
+    setNewMsg('')
     setSending(false)
   }
 
   function formatTime(date: string) {
-    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    const d = new Date(date)
+    const now = new Date()
+    const isToday = d.toDateString() === now.toDateString()
+    return isToday
+      ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : d.toLocaleDateString([], { month: 'short', day: 'numeric' })
   }
 
-  if (!user) {
-    return (
-      <div className="text-center py-20">
-        <div className="text-5xl mb-4">🔒</div>
-        <h3 className="font-playfair text-2xl font-bold mb-2">Sign in to view messages</h3>
-        <a href="/login" className="text-amber-600 hover:underline">Go to login →</a>
-      </div>
-    )
+  function getInitials(name: string) {
+    return name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '??'
   }
+
+  if (!user) return (
+    <div style={{ textAlign: 'center', padding: '80px 24px' }}>
+      <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🔒</div>
+      <h3 className="font-playfair" style={{ fontSize: '1.5rem', marginBottom: '12px' }}>Sign in to view messages</h3>
+      <a href="/login" style={{ color: '#d97706' }}>Go to login →</a>
+    </div>
+  )
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
-      <h1 className="font-playfair text-3xl font-bold mb-6">Messages</h1>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px 24px', height: 'calc(100vh - 120px)' }}>
+      <h1 className="font-playfair" style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '24px' }}>Messages</h1>
 
-      <div className="border border-amber-100 rounded-2xl overflow-hidden flex" style={{ height: '70vh' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', height: 'calc(100% - 60px)', border: '1px solid #fde68a', borderRadius: '20px', overflow: 'hidden' }}>
 
         {/* Sidebar */}
-        <div className="w-72 border-r border-amber-100 flex flex-col flex-shrink-0">
-          <div className="p-4 border-b border-amber-100 font-semibold text-sm">Conversations</div>
-          <div className="flex-1 overflow-y-auto">
+        <div style={{ borderRight: '1px solid #fde68a', display: 'flex', flexDirection: 'column', background: '#fffbeb' }}>
+          <div style={{ padding: '20px', borderBottom: '1px solid #fde68a', fontWeight: 700, fontSize: '0.95rem' }}>
+            Conversations ({conversations.length})
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
             {loading ? (
-              <div className="p-4 space-y-3">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="flex gap-3 animate-pulse">
-                    <div className="w-10 h-10 rounded-full bg-gray-100"></div>
-                    <div className="flex-1">
-                      <div className="h-3 bg-gray-100 rounded w-2/3 mb-2"></div>
-                      <div className="h-3 bg-gray-100 rounded w-1/2"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: '0.875rem' }}>Loading...</div>
             ) : conversations.length === 0 ? (
-              <div className="p-6 text-center text-gray-400 text-sm">
-                <div className="text-3xl mb-2">💬</div>
+              <div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: '0.875rem' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '8px' }}>💬</div>
                 No conversations yet.<br />
-                <a href="/volunteers" className="text-amber-600 hover:underline">Browse volunteers</a> to start one.
+                <a href="/volunteers" style={{ color: '#d97706' }}>Browse volunteers</a> to start one.
               </div>
-            ) : (
-              conversations.map(p => (
-                <div key={p.id}
-                  onClick={() => setActiveProfile(p)}
-                  className={`flex items-center gap-3 p-4 cursor-pointer border-b border-amber-50 transition ${activeProfile?.id === p.id ? 'bg-amber-50' : 'hover:bg-gray-50'}`}>
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-400 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                    {p.name?.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-semibold text-sm truncate">{p.name}</div>
-                    <div className="text-xs text-gray-400 truncate">📍 {p.country}</div>
-                  </div>
+            ) : conversations.map(c => (
+              <div key={c.id} onClick={() => { setActiveConvo(c); setMobileView('chat') }}
+                style={{
+                  padding: '16px 20px', borderBottom: '1px solid #fef3c7', cursor: 'pointer',
+                  background: activeConvo?.id === c.id ? '#fef3c7' : 'transparent',
+                  display: 'flex', alignItems: 'center', gap: '12px', transition: 'background 0.15s'
+                }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0 }}>
+                  {getInitials(c.other?.name)}
                 </div>
-              ))
-            )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{c.other?.name}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.lastMsg}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Chat area */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {!activeProfile ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-              <div className="text-5xl mb-3">👈</div>
-              <p className="text-sm">Select a conversation to start chatting</p>
+        <div style={{ display: 'flex', flexDirection: 'column', background: '#fff' }}>
+          {!activeConvo ? (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '12px' }}>💬</div>
+              <p style={{ fontSize: '0.95rem' }}>Select a conversation to start chatting</p>
+              <a href="/volunteers" style={{ marginTop: '12px', color: '#d97706', fontSize: '0.875rem' }}>Browse volunteers →</a>
             </div>
           ) : (
             <>
-              {/* Chat header */}
-              <div className="p-4 border-b border-amber-100 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-400 flex items-center justify-center text-white font-bold text-sm">
-                  {activeProfile.name?.slice(0, 2).toUpperCase()}
+              {/* Header */}
+              <div style={{ padding: '16px 24px', borderBottom: '1px solid #fde68a', display: 'flex', alignItems: 'center', gap: '14px', background: '#fffbeb' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.85rem' }}>
+                  {getInitials(activeConvo.other?.name)}
                 </div>
                 <div>
-                  <div className="font-bold text-sm">{activeProfile.name}</div>
-                  <div className="text-xs text-green-500">🟢 Active</div>
+                  <div style={{ fontWeight: 700 }}>{activeConvo.other?.name}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#4A5C3A' }}>🟢 {activeConvo.other?.country}</div>
                 </div>
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-3">
+              <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {messages.length === 0 ? (
-                  <div className="text-center text-gray-400 text-sm py-10">
+                  <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.875rem', padding: '40px 0' }}>
                     No messages yet — say hello! 👋
                   </div>
-                ) : (
-                  messages.map(msg => {
-                    const isMe = msg.sender_id === user.id
-                    return (
-                      <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${isMe ? 'bg-amber-600 text-white rounded-br-sm' : 'bg-white border border-amber-100 rounded-bl-sm'}`}>
-                          {msg.content}
-                          <div className={`text-xs mt-1 ${isMe ? 'text-amber-200' : 'text-gray-400'}`}>
-                            {formatTime(msg.created_at)}
-                          </div>
+                ) : messages.map(msg => {
+                  const isMe = msg.sender_id === user.id
+                  return (
+                    <div key={msg.id} style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
+                      <div style={{
+                        maxWidth: '65%', padding: '12px 16px', borderRadius: '18px',
+                        background: isMe ? '#d97706' : '#f9fafb',
+                        color: isMe ? '#fff' : '#1a1a2e',
+                        border: isMe ? 'none' : '1px solid #fde68a',
+                        borderBottomRightRadius: isMe ? '4px' : '18px',
+                        borderBottomLeftRadius: isMe ? '18px' : '4px',
+                        fontSize: '0.9rem', lineHeight: 1.6,
+                      }}>
+                        {msg.content}
+                        <div style={{ fontSize: '0.7rem', opacity: 0.6, marginTop: '4px', textAlign: isMe ? 'right' : 'left' }}>
+                          {formatTime(msg.created_at)}
                         </div>
                       </div>
-                    )
-                  })
-                )}
+                    </div>
+                  )
+                })}
                 <div ref={bottomRef} />
               </div>
 
               {/* Input */}
-              <div className="p-4 border-t border-amber-100 flex gap-3 items-center">
-                <input
-                  value={newMsg}
-                  onChange={e => setNewMsg(e.target.value)}
+              <div style={{ padding: '16px 20px', borderTop: '1px solid #fde68a', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input value={newMsg} onChange={e => setNewMsg(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                  className="flex-1 px-5 py-3 rounded-full border border-gray-200 focus:border-amber-400 focus:outline-none text-sm"
-                  placeholder="Type a message… / اكتب رسالة…"
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={sending || !newMsg.trim()}
-                  className="w-11 h-11 rounded-full bg-amber-600 text-white flex items-center justify-center hover:bg-amber-700 transition disabled:opacity-50">
+                  style={{ flex: 1, padding: '12px 20px', borderRadius: '100px', border: '1.5px solid #fde68a', fontSize: '0.9rem', outline: 'none', fontFamily: 'inherit', background: '#fffbeb' }}
+                  placeholder="Type a message… / اكتب رسالة…" />
+                <button onClick={sendMessage} disabled={sending || !newMsg.trim()}
+                  style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#d97706', border: 'none', cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: sending || !newMsg.trim() ? 0.5 : 1 }}>
                   <Send size={16} />
                 </button>
               </div>
@@ -227,7 +266,7 @@ export default function MessagesPage() {
   return (
     <>
       <Navbar />
-      <Suspense fallback={<div className="text-center py-20 text-gray-400">Loading...</div>}>
+      <Suspense fallback={<div style={{ textAlign: 'center', padding: '80px', color: '#9ca3af' }}>Loading...</div>}>
         <MessagesContent />
       </Suspense>
     </>

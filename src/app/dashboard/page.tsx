@@ -102,7 +102,7 @@ export default function DashboardPage() {
                   </div>
                   {(profile?.languages?.length ?? 0) > 0 && (
                     <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
-                      {profile.languages.map(l => (
+                      {profile?.languages?.map(l => (
                         <span key={l} style={{ fontSize: '0.75rem', background: '#f9fafb', border: '1px solid #e5e7eb', padding: '2px 10px', borderRadius: '100px', color: '#6b7280' }}>{l}</span>
                       ))}
                     </div>

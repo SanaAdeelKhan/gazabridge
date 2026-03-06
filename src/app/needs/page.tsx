@@ -2,44 +2,22 @@
 import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
 import { supabase } from '@/lib/supabase'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 
 type Request = {
   id: string
   category: string
   description: string
-  tags: string[]
   created_at: string
-  profiles: {
-    name: string
-    country: string
-    languages: string[]
-  }
+  profiles: { id: string; name: string; country: string; languages: string[] }
 }
 
 const categories = ['All', '📚 Learn a language', '💻 Learn tech / AI skills', '💼 Career / CV help', '🫂 Mental health support', '📖 Academic tutoring', '🎨 Creative skills']
 
-function getInitials(name: string) {
-  return name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '??'
-}
-
-function timeAgo(date: string) {
-  const diff = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
-  if (diff < 60) return 'just now'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  return `${Math.floor(diff / 86400)}d ago`
-}
-
-const avatarColors = [
-  'from-amber-500 to-orange-400',
-  'from-teal-500 to-green-400',
-  'from-olive-500 to-green-700',
-  'from-rose-500 to-pink-400',
-  'from-blue-500 to-indigo-400',
-]
-
 export default function NeedsPage() {
+  const { user } = useAuth()
+  const router = useRouter()
   const [requests, setRequests] = useState<Request[]>([])
   const [filtered, setFiltered] = useState<Request[]>([])
   const [activecat, setActivecat] = useState('All')
@@ -47,18 +25,9 @@ export default function NeedsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchRequests() {
-      const { data, error } = await supabase
-        .from('requests')
-        .select('*, profiles(name, country, languages)')
-        .order('created_at', { ascending: false })
-      if (!error && data) {
-        setRequests(data as any)
-        setFiltered(data as any)
-      }
-      setLoading(false)
-    }
-    fetchRequests()
+    supabase.from('requests').select('*, profiles(id, name, country, languages)')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) { setRequests(data as any); setFiltered(data as any) } setLoading(false) })
   }, [])
 
   useEffect(() => {
@@ -71,88 +40,70 @@ export default function NeedsPage() {
     setFiltered(result)
   }, [activecat, search, requests])
 
+  function handleOfferHelp(profileId: string) {
+    if (!user) { router.push('/login'); return }
+    router.push(`/messages?to=${profileId}`)
+  }
+
   return (
     <>
       <Navbar />
-      <div className="max-w-4xl mx-auto px-6 py-12">
-
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="font-playfair text-4xl font-bold mb-2">People Seeking Help</h1>
-          <p className="text-gray-400">Browse requests from Gaza — reach out and offer your support</p>
-          <p className="font-arabic text-gray-400 text-sm mt-1" dir="rtl">طلبات المساعدة من أهل غزة</p>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '48px 24px' }}>
+        <div style={{ marginBottom: '40px' }}>
+          <h1 className="font-playfair" style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '8px' }}>People Seeking Help</h1>
+          <p style={{ color: '#9ca3af' }}>Browse requests from Gaza — reach out and offer your support</p>
+          <p className="font-arabic" style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '4px', direction: 'rtl' }}>طلبات المساعدة من أهل غزة</p>
         </div>
 
-        {/* Search */}
-        <div className="mb-6">
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full max-w-md px-5 py-3 rounded-full border border-gray-200 focus:border-amber-400 focus:outline-none text-sm"
-            placeholder="Search requests..."
-          />
-        </div>
+        <input value={search} onChange={e => setSearch(e.target.value)}
+          style={{ width: '100%', maxWidth: '400px', padding: '12px 20px', borderRadius: '100px', border: '1.5px solid #d1fae5', fontSize: '0.9rem', outline: 'none', marginBottom: '24px', fontFamily: 'inherit' }}
+          placeholder="Search requests..." />
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '32px' }}>
           {categories.map(cat => (
-            <button key={cat} onClick={() => setActivecat(cat)}
-              className={`px-4 py-2 rounded-full text-sm border transition ${activecat === cat ? 'bg-[#4A5C3A] text-white border-[#4A5C3A]' : 'border-gray-200 hover:border-green-300'}`}>
-              {cat}
-            </button>
+            <button key={cat} onClick={() => setActivecat(cat)} style={{
+              padding: '8px 18px', borderRadius: '100px', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit',
+              border: activecat === cat ? '2px solid #4A5C3A' : '2px solid #e5e7eb',
+              background: activecat === cat ? '#4A5C3A' : '#fff',
+              color: activecat === cat ? '#fff' : '#374151',
+            }}>{cat}</button>
           ))}
         </div>
 
-        {/* List */}
         {loading ? (
-          <div className="space-y-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-amber-100 p-6 animate-pulse flex gap-4">
-                <div className="w-12 h-12 rounded-full bg-gray-100 flex-shrink-0"></div>
-                <div className="flex-1">
-                  <div className="h-4 bg-gray-100 rounded w-1/4 mb-2"></div>
-                  <div className="h-3 bg-gray-100 rounded w-1/3 mb-4"></div>
-                  <div className="h-16 bg-gray-100 rounded"></div>
-                </div>
-              </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+            {[...Array(6)].map((_, i) => (
+              <div key={i} style={{ background: '#fff', borderRadius: '20px', border: '1px solid #d1fae5', padding: '24px', height: '200px' }} />
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">🌟</div>
-            <h3 className="font-playfair text-2xl font-bold mb-2">No requests yet</h3>
-            <p className="text-gray-400 mb-6">Be the first to post a request or check back soon</p>
-            <Link href="/join?role=seeker" className="px-6 py-3 rounded-full bg-[#4A5C3A] text-white font-semibold hover:bg-[#3a4a2c] transition">
-              Post a Request
-            </Link>
+          <div style={{ textAlign: 'center', padding: '80px 24px' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🌟</div>
+            <h3 className="font-playfair" style={{ fontSize: '1.5rem', marginBottom: '8px' }}>No requests yet</h3>
+            <p style={{ color: '#9ca3af', marginBottom: '24px' }}>Be the first to post a request!</p>
+            <a href="/join?role=seeker" style={{ padding: '12px 28px', borderRadius: '100px', background: '#4A5C3A', color: '#fff', fontWeight: 600, textDecoration: 'none' }}>Post a Request</a>
           </div>
         ) : (
-          <div className="space-y-4">
-            {filtered.map((req, i) => (
-              <div key={req.id} className="bg-white rounded-2xl border border-amber-100 p-6 flex items-start gap-4 hover:border-amber-200 hover:shadow-md transition">
-                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarColors[i % avatarColors.length]} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
-                  {getInitials(req.profiles?.name)}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+            {filtered.map(req => (
+              <div key={req.id} style={{ background: '#fff', borderRadius: '20px', border: '1px solid #d1fae5', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px', transition: 'box-shadow 0.2s' }}>
+                <span style={{ display: 'inline-block', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', background: '#f0fdf4', color: '#16a34a', padding: '4px 12px', borderRadius: '100px' }}>
+                  {req.category}
+                </span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '1rem' }}>{req.profiles?.name}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>📍 {req.profiles?.country}</div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-bold text-sm">{req.profiles?.name}</span>
-                    <span className="text-gray-400 text-xs">📍 {req.profiles?.country}</span>
-                    <span className="text-gray-300 text-xs">{timeAgo(req.created_at)}</span>
-                  </div>
-                  <span className="inline-block text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full mb-2">{req.category}</span>
-                  <p className="text-gray-600 text-sm leading-relaxed mb-3">{req.description}</p>
-                  {req.profiles?.languages?.length > 0 && (
-                    <div className="flex gap-2 flex-wrap">
-                      {req.profiles.languages.map(l => (
-                        <span key={l} className="text-xs bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-full text-gray-500">{l}</span>
-                      ))}
-                    </div>
-                  )}
+                <p style={{ color: '#555', fontSize: '0.875rem', lineHeight: 1.6, flex: 1 }}>{req.description}</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {req.profiles?.languages?.map(l => (
+                    <span key={l} style={{ fontSize: '0.75rem', background: '#f9fafb', border: '1px solid #e5e7eb', padding: '2px 10px', borderRadius: '100px', color: '#6b7280' }}>{l}</span>
+                  ))}
                 </div>
-                <Link href={`/messages?to=${req.profiles?.name}`}
-                  className="flex-shrink-0 px-4 py-2 rounded-full border-2 border-[#4A5C3A] text-[#4A5C3A] text-sm font-semibold hover:bg-[#4A5C3A] hover:text-white transition whitespace-nowrap">
-                  Offer Help
-                </Link>
+                <button onClick={() => handleOfferHelp(req.profiles?.id)}
+                  style={{ width: '100%', padding: '10px', borderRadius: '100px', background: '#4A5C3A', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+                  🤝 Offer Help to {req.profiles?.name?.split(' ')[0]}
+                </button>
               </div>
             ))}
           </div>

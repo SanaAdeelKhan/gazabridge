@@ -119,7 +119,7 @@ function JoinForm() {
           </div>
           <div style={{ marginBottom: '16px' }}>
             <label style={labelStyle}>Email</label>
-            <input type="email" value={form.email} onChange={e => set('email', e.target.value)} style={inputStyle} placeholder="your@email.com" />
+            <input type="text" value={form.email} onChange={e => set('email', e.target.value)} style={inputStyle} placeholder="your@email.com" />
           </div>
           <div style={{ marginBottom: role === 'seeker' ? '16px' : '0' }}>
             <label style={labelStyle}>Password</label>

@@ -137,8 +137,8 @@ function MessagesContent() {
     const now = new Date()
     const isToday = d.toDateString() === now.toDateString()
     return isToday
-      ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      : d.toLocaleDateString([], { month: 'short', day: 'numeric' })
+      ? d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone })
+      : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
   }
 
   function getInitials(name: string) {

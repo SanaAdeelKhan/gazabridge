@@ -13,7 +13,7 @@ function JoinForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
-    name: '', email: '', password: '', country: '', contact: '',
+    name: '', email: '', password: '', country: '', contact: '', linkedin: '',
     category: '', description: '', availability: '', languages: [] as string[],
   })
 
@@ -36,7 +36,7 @@ function JoinForm() {
       const userId = authData.user?.id
       if (!userId) throw new Error('No user ID returned')
       const { error: profileError } = await supabase.from('profiles').insert({
-        id: userId, name: form.name, role, country: form.country, contact: form.contact, languages: form.languages,
+        id: userId, name: form.name, role, country: form.country, contact: form.contact, linkedin: form.linkedin, languages: form.languages,
       })
       if (profileError) throw profileError
       if (role === 'volunteer') {
@@ -58,10 +58,10 @@ function JoinForm() {
     }
   }
 
-  const langs = ['English', 'Arabic / العربية', 'French', 'Urdu', 'Turkish', 'German']
+  const langs = ['English', 'Arabic / العربية', 'French', 'Urdu', 'Turkish', 'German', 'Other']
   const categories = role === 'volunteer'
-    ? ['📚 Teaching / Language', '💻 Tech / Coding / AI', '💼 Career / Mentorship', '🫂 Mental Health', '🎨 Creative / Design', '📖 Academic Tutoring']
-    : ['📚 Learn a language', '💻 Learn tech / AI skills', '💼 Career / CV help', '🫂 Mental health support', '📖 Academic tutoring', '🎨 Creative skills']
+    ? ['📚 Teaching / Language', '💻 Tech / Coding / AI', '💼 Career / Mentorship', '🫂 Mental Health', '🎨 Creative / Design', '📖 Academic Tutoring', '🌐 Other']
+    : ['📚 Learn a language', '💻 Learn tech / AI skills', '💼 Career / CV help', '🫂 Mental health support', '📖 Academic tutoring', '🎨 Creative skills', '🌐 Other']
 
   const inputStyle = {
     width: '100%', padding: '12px 16px', borderRadius: '12px',
@@ -121,16 +121,20 @@ function JoinForm() {
             <label style={labelStyle}>Email</label>
             <input type="text" value={form.email} onChange={e => set('email', e.target.value)} style={inputStyle} placeholder="your@email.com" />
           </div>
-          <div style={{ marginBottom: role === 'seeker' ? '16px' : '0' }}>
+          <div style={{ marginBottom: '16px' }}>
             <label style={labelStyle}>Password</label>
             <input type="password" value={form.password} onChange={e => set('password', e.target.value)} style={inputStyle} placeholder="Min 6 characters" />
           </div>
           {role === 'seeker' && (
-            <div>
+            <div style={{ marginBottom: '16px' }}>
               <label style={labelStyle}>Contact (WhatsApp / Telegram)</label>
               <input value={form.contact} onChange={e => set('contact', e.target.value)} style={inputStyle} placeholder="How can volunteers reach you?" />
             </div>
           )}
+          <div>
+            <label style={labelStyle}>LinkedIn Profile <span style={{ fontWeight: 400, color: '#9ca3af' }}>(optional but recommended for trust)</span></label>
+            <input value={form.linkedin} onChange={e => set('linkedin', e.target.value)} style={inputStyle} placeholder="https://linkedin.com/in/yourname" />
+          </div>
         </div>
 
         {/* Offer/Need */}

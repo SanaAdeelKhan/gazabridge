@@ -10,7 +10,7 @@ type Offer = {
   category: string
   description: string
   availability: string
-  profiles: { id: string; name: string; country: string; languages: string[] }
+  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string }
 }
 
 const categories = ['All', '📚 Teaching / Language', '💻 Tech / Coding / AI', '💼 Career / Mentorship', '🫂 Mental Health', '🎨 Creative / Design', '📖 Academic Tutoring']
@@ -25,7 +25,7 @@ export default function VolunteersPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.from('offers').select('*, profiles(id, name, country, languages)')
+    supabase.from('offers').select('*, profiles(id, name, country, languages, linkedin)')
       .order('created_at', { ascending: false })
       .then(({ data }) => { if (data) { setOffers(data as any); setFiltered(data as any) } setLoading(false) })
   }, [])
@@ -93,6 +93,7 @@ export default function VolunteersPage() {
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '1rem' }}>{offer.profiles?.name}</div>
                   <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>📍 {offer.profiles?.country}</div>
+                {offer.profiles?.linkedin && <a href={offer.profiles.linkedin} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#0077b5', fontWeight: 600, textDecoration: 'none' }}>🔗 LinkedIn</a>}
                 </div>
                 <p style={{ color: '#555', fontSize: '0.875rem', lineHeight: 1.6, flex: 1 }}>{offer.description}</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>

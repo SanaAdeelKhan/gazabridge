@@ -5,12 +5,13 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import Link from 'next/link'
 
-type Profile = { name: string; role: string; country: string; languages: string[] }
+type Profile = { name: string; role: string; country: string; languages: string[]; linkedin?: string }
 type Offer = { id: string; category: string; description: string; availability: string }
 type Request = { id: string; category: string; description: string }
 
-const categories_vol = ['📚 Teaching / Language', '💻 Tech / Coding / AI', '💼 Career / Mentorship', '🫂 Mental Health', '🎨 Creative / Design', '📖 Academic Tutoring']
-const categories_seek = ['📚 Learn a language', '💻 Learn tech / AI skills', '💼 Career / CV help', '🫂 Mental health support', '📖 Academic tutoring', '🎨 Creative skills']
+const categories_vol = ['📚 Teaching / Language', '💻 Tech / Coding / AI', '💼 Career / Mentorship', '🫂 Mental Health', '🎨 Creative / Design', '📖 Academic Tutoring', '🌐 Other']
+const categories_seek = ['📚 Learn a language', '💻 Learn tech / AI skills', '💼 Career / CV help', '🫂 Mental health support', '📖 Academic tutoring', '🎨 Creative skills', '🌐 Other']
+const all_langs = ['English', 'Arabic / العربية', 'French', 'Urdu', 'Turkish', 'German', 'Other']
 
 export default function DashboardPage() {
   const { user, signOut } = useAuth()
@@ -19,15 +20,21 @@ export default function DashboardPage() {
   const [requests, setRequests] = useState<Request[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [showEditProfile, setShowEditProfile] = useState(false)
   const [form, setForm] = useState({ category: '', description: '', availability: '' })
+  const [editForm, setEditForm] = useState({ name: '', country: '', linkedin: '', languages: [] as string[] })
   const [saving, setSaving] = useState(false)
+  const [savingProfile, setSavingProfile] = useState(false)
   const [success, setSuccess] = useState('')
 
   useEffect(() => { if (user) fetchData() }, [user])
 
   async function fetchData() {
     const { data: prof } = await supabase.from('profiles').select('*').eq('id', user!.id).single()
-    if (prof) setProfile(prof)
+    if (prof) {
+      setProfile(prof)
+      setEditForm({ name: prof.name || '', country: prof.country || '', linkedin: prof.linkedin || '', languages: prof.languages || [] })
+    }
     if (prof?.role === 'volunteer') {
       const { data } = await supabase.from('offers').select('*').eq('user_id', user!.id).order('created_at', { ascending: false })
       if (data) setOffers(data)
@@ -36,6 +43,32 @@ export default function DashboardPage() {
       if (data) setRequests(data)
     }
     setLoading(false)
+  }
+
+  async function saveProfile() {
+    setSavingProfile(true)
+    const { error } = await supabase.from('profiles').update({
+      name: editForm.name,
+      country: editForm.country,
+      linkedin: editForm.linkedin,
+      languages: editForm.languages,
+    }).eq('id', user!.id)
+    if (!error) {
+      setSuccess('Profile updated!')
+      setTimeout(() => setSuccess(''), 3000)
+      setShowEditProfile(false)
+      fetchData()
+    }
+    setSavingProfile(false)
+  }
+
+  function toggleEditLang(lang: string) {
+    setEditForm(f => ({
+      ...f,
+      languages: f.languages.includes(lang)
+        ? f.languages.filter(l => l !== lang)
+        : [...f.languages, lang]
+    }))
   }
 
   async function addItem() {
@@ -94,11 +127,12 @@ export default function DashboardPage() {
                 </div>
                 <div style={{ flex: 1 }}>
                   <h1 className="font-playfair" style={{ fontSize: '1.8rem', fontWeight: 700 }}>{profile?.name}</h1>
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 600, padding: '3px 12px', borderRadius: '100px', background: profile?.role === 'volunteer' ? '#fffbeb' : '#f0fdf4', color: profile?.role === 'volunteer' ? '#b45309' : '#16a34a' }}>
                       {profile?.role === 'volunteer' ? '🙌 Volunteer' : '🌟 Member'}
                     </span>
                     {profile?.country && <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>📍 {profile.country}</span>}
+                    {profile?.linkedin && <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#0077b5', fontWeight: 600, textDecoration: 'none' }}>🔗 LinkedIn</a>}
                   </div>
                   {(profile?.languages?.length ?? 0) > 0 && (
                     <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
@@ -112,11 +146,56 @@ export default function DashboardPage() {
                   <Link href="/messages" style={{ padding: '8px 20px', borderRadius: '100px', background: '#fffbeb', color: '#b45309', fontWeight: 600, fontSize: '0.875rem', textDecoration: 'none', textAlign: 'center' }}>
                     💬 Messages
                   </Link>
+                  <button onClick={() => setShowEditProfile(!showEditProfile)} style={{ padding: '8px 20px', borderRadius: '100px', border: '1px solid #fde68a', background: '#fffbeb', fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, color: '#b45309' }}>
+                    ✏️ Edit Profile
+                  </button>
                   <button onClick={signOut} style={{ padding: '8px 20px', borderRadius: '100px', border: '1px solid #e5e7eb', background: '#fff', fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit' }}>
                     Sign Out
                   </button>
                 </div>
               </div>
+
+              {/* Edit Profile Form */}
+              {showEditProfile && (
+                <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #fde68a', padding: '28px', marginBottom: '24px' }}>
+                  <h3 style={{ fontWeight: 700, marginBottom: '20px', fontSize: '1.1rem' }}>✏️ Edit Profile</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Full Name</label>
+                      <input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} style={inputStyle} placeholder="Your name" />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Country / Location</label>
+                      <input value={editForm.country} onChange={e => setEditForm(f => ({ ...f, country: e.target.value }))} style={inputStyle} placeholder="Where are you based?" />
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>LinkedIn Profile URL</label>
+                    <input value={editForm.linkedin} onChange={e => setEditForm(f => ({ ...f, linkedin: e.target.value }))} style={inputStyle} placeholder="https://linkedin.com/in/yourname" />
+                  </div>
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '10px' }}>Languages</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {all_langs.map(l => (
+                        <button key={l} onClick={() => toggleEditLang(l)} style={{
+                          padding: '6px 16px', borderRadius: '100px', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit',
+                          border: editForm.languages.includes(l) ? '2px solid #d97706' : '2px solid #e5e7eb',
+                          background: editForm.languages.includes(l) ? '#d97706' : '#fff',
+                          color: editForm.languages.includes(l) ? '#fff' : '#374151',
+                        }}>{l}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button onClick={saveProfile} disabled={savingProfile} style={{ padding: '12px 32px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: savingProfile ? 0.6 : 1 }}>
+                      {savingProfile ? 'Saving...' : 'Save Profile'}
+                    </button>
+                    <button onClick={() => setShowEditProfile(false)} style={{ padding: '12px 24px', borderRadius: '100px', border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Success banner */}
               {success && (

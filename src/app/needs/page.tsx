@@ -10,7 +10,7 @@ type Request = {
   category: string
   description: string
   created_at: string
-  profiles: { id: string; name: string; country: string; languages: string[] }
+  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string }
 }
 
 const categories = ['All', '📚 Learn a language', '💻 Learn tech / AI skills', '💼 Career / CV help', '🫂 Mental health support', '📖 Academic tutoring', '🎨 Creative skills']
@@ -25,7 +25,7 @@ export default function NeedsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.from('requests').select('*, profiles(id, name, country, languages)')
+    supabase.from('requests').select('*, profiles(id, name, country, languages, linkedin)')
       .order('created_at', { ascending: false })
       .then(({ data }) => { if (data) { setRequests(data as any); setFiltered(data as any) } setLoading(false) })
   }, [])
@@ -93,6 +93,7 @@ export default function NeedsPage() {
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '1rem' }}>{req.profiles?.name}</div>
                   <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>📍 {req.profiles?.country}</div>
+                {req.profiles?.linkedin && <a href={req.profiles.linkedin} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#0077b5', fontWeight: 600, textDecoration: 'none' }}>🔗 LinkedIn</a>}
                 </div>
                 <p style={{ color: '#555', fontSize: '0.875rem', lineHeight: 1.6, flex: 1 }}>{req.description}</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>

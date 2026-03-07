@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import { supabase } from '@/lib/supabase'
+import GoogleSignInButton from '@/components/GoogleSignInButton'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -26,6 +27,8 @@ export default function LoginPage() {
     }
   }
 
+  const inputStyle = { width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid #fde68a', fontSize: '0.9rem', outline: 'none', fontFamily: 'inherit', background: '#fffbeb', boxSizing: 'border-box' as const }
+
   return (
     <>
       <Navbar />
@@ -41,6 +44,16 @@ export default function LoginPage() {
           </div>
         )}
 
+        {/* Google Sign In */}
+        <div style={{ marginBottom: '24px' }}>
+          <GoogleSignInButton label="Continue with Google" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '20px' }}>
+            <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+            <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>or sign in with email</span>
+            <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+          </div>
+        </div>
+
         <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #fde68a', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Email</label>
@@ -49,7 +62,7 @@ export default function LoginPage() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid #fde68a', fontSize: '0.9rem', outline: 'none', fontFamily: 'inherit', background: '#fffbeb', boxSizing: 'border-box' }}
+              style={inputStyle}
               placeholder="your@email.com"
             />
           </div>
@@ -60,7 +73,7 @@ export default function LoginPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid #fde68a', fontSize: '0.9rem', outline: 'none', fontFamily: 'inherit', background: '#fffbeb', boxSizing: 'border-box' }}
+              style={inputStyle}
               placeholder="Your password"
             />
           </div>

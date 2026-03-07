@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import { supabase } from '@/lib/supabase'
+import GoogleSignInButton from '@/components/GoogleSignInButton'
 
 function JoinForm() {
   const router = useRouter()
@@ -96,6 +97,16 @@ function JoinForm() {
               <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{r === 'volunteer' ? 'Offer your skills for free' : 'Get help from volunteers'}</div>
             </button>
           ))}
+        </div>
+
+        {/* Google Sign In */}
+        <div style={{ marginBottom: '24px' }}>
+          <GoogleSignInButton label="Sign up with Google" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0 0' }}>
+            <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+            <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>or fill in the form below</span>
+            <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+          </div>
         </div>
 
         {error && (

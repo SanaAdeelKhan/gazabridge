@@ -1,17 +1,87 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
+import { supabase } from '@/lib/supabase'
 import { Menu, X } from 'lucide-react'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      fetchUnread()
+      checkAdmin()
+
+      // Realtime subscription for new messages
+      const channel = supabase
+        .channel('unread-messages')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        }, () => fetchUnread())
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+        }, () => fetchUnread())
+        .subscribe()
+
+      return () => { supabase.removeChannel(channel) }
+    } else {
+      setUnreadCount(0)
+      setIsAdmin(false)
+    }
+  }, [user])
+
+  async function fetchUnread() {
+    // Get all conversations the user is part of
+    const { data: convs } = await supabase
+      .from('conversations')
+      .select('id')
+      .or(`participant1.eq.${user!.id},participant2.eq.${user!.id}`)
+
+    if (!convs || convs.length === 0) return
+
+    const convIds = convs.map(c => c.id)
+
+    const { count } = await supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .in('conversation_id', convIds)
+      .eq('is_read', false)
+      .neq('sender_id', user!.id)
+
+    setUnreadCount(count || 0)
+  }
+
+  async function checkAdmin() {
+    const { data } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user!.id)
+      .single()
+    setIsAdmin(data?.is_admin || false)
+  }
+
+  const badge = unreadCount > 0 ? (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      background: '#dc2626', color: '#fff', borderRadius: '100px',
+      fontSize: '0.65rem', fontWeight: 700, minWidth: '18px', height: '18px',
+      padding: '0 5px', marginLeft: '4px', lineHeight: 1,
+    }}>
+      {unreadCount > 99 ? '99+' : unreadCount}
+    </span>
+  ) : null
 
   return (
     <nav className="sticky top-0 z-50 border-b border-amber-100 bg-[#FDF8F0]/90 backdrop-blur-md">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-
         {/* Logo */}
         <Link href="/" className="font-playfair text-2xl font-black tracking-tight">
           Gaza<span className="text-amber-600">Bridge</span>
@@ -21,9 +91,18 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-2">
           <Link href="/volunteers" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition">Volunteers</Link>
           <Link href="/needs" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition">Needs</Link>
-          {user && <Link href="/messages" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition">Messages</Link>}
+          {user && (
+            <Link href="/messages" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition" style={{ display: 'inline-flex', alignItems: 'center' }}>
+              Messages{badge}
+            </Link>
+          )}
           {user ? (
             <div className="flex items-center gap-2 ml-2">
+              {isAdmin && (
+                <Link href="/admin" className="px-4 py-2 rounded-full text-sm font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 transition">
+                  ⚙️ Admin
+                </Link>
+              )}
               <Link href="/dashboard" className="px-4 py-2 rounded-full text-sm font-medium bg-amber-50 hover:bg-amber-100 transition">Dashboard</Link>
               <button onClick={signOut} className="px-4 py-2 rounded-full text-sm font-medium border border-amber-200 hover:border-amber-400 transition">Sign Out</button>
             </div>
@@ -46,9 +125,19 @@ export default function Navbar() {
         <div className="md:hidden px-6 pb-4 flex flex-col gap-2 border-t border-amber-100">
           <Link href="/volunteers" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Volunteers</Link>
           <Link href="/needs" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Needs</Link>
-          {user && <Link href="/messages" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Messages</Link>}
+          {user && (
+            <Link href="/messages" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)} style={{ display: 'inline-flex', alignItems: 'center' }}>
+              Messages{badge}
+            </Link>
+          )}
           {user ? (
-            <button onClick={signOut} className="py-2 text-sm font-medium text-left text-red-500">Sign Out</button>
+            <>
+              {isAdmin && (
+                <Link href="/admin" className="py-2 text-sm font-semibold text-amber-700" onClick={() => setMenuOpen(false)}>⚙️ Admin</Link>
+              )}
+              <Link href="/dashboard" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+              <button onClick={signOut} className="py-2 text-sm font-medium text-left text-red-500">Sign Out</button>
+            </>
           ) : (
             <>
               <Link href="/login" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Login</Link>

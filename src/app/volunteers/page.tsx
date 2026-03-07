@@ -10,7 +10,7 @@ type Offer = {
   category: string
   description: string
   availability: string
-  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string }
+  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string; whatsapp?: string }
 }
 
 const categories = ['All', '📚 Teaching / Language', '💻 Tech / Coding / AI', '💼 Career / Mentorship', '🫂 Mental Health', '🎨 Creative / Design', '📖 Academic Tutoring']
@@ -25,7 +25,7 @@ export default function VolunteersPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.from('offers').select('*, profiles(id, name, country, languages, linkedin)')
+    supabase.from('offers').select('*, profiles(id, name, country, languages, linkedin, whatsapp)')
       .order('created_at', { ascending: false })
       .then(({ data }) => { if (data) { setOffers(data as any); setFiltered(data as any) } setLoading(false) })
   }, [])
@@ -43,6 +43,13 @@ export default function VolunteersPage() {
   function handleMessage(profileId: string) {
     if (!user) { router.push('/login'); return }
     router.push(`/messages?to=${profileId}`)
+  }
+
+  function whatsappUrl(whatsapp: string) {
+    // Support both numbers and group links
+    if (whatsapp.startsWith('https://')) return whatsapp
+    const clean = whatsapp.replace(/[^0-9]/g, '')
+    return `https://wa.me/${clean}`
   }
 
   return (
@@ -79,35 +86,77 @@ export default function VolunteersPage() {
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 24px' }}>
             <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🔍</div>
-            <h3 className="font-playfair" style={{ fontSize: '1.5rem', marginBottom: '8px' }}>No offers found</h3>
-            <p style={{ color: '#9ca3af', marginBottom: '24px' }}>Be the first to offer!</p>
-            <a href="/join?role=volunteer" style={{ padding: '12px 28px', borderRadius: '100px', background: '#d97706', color: '#fff', fontWeight: 600, textDecoration: 'none' }}>Post Your Offer</a>
+            <p style={{ color: '#9ca3af' }}>No volunteers found</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
             {filtered.map(offer => (
-              <div key={offer.id} style={{ background: '#fff', borderRadius: '20px', border: '1px solid #fde68a', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px', transition: 'box-shadow 0.2s' }}>
-                <span style={{ display: 'inline-block', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', background: '#fffbeb', color: '#b45309', padding: '4px 12px', borderRadius: '100px' }}>
+              <div key={offer.id} style={{ background: '#fff', borderRadius: '20px', border: '1px solid #fde68a', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+                {/* Category badge */}
+                <span style={{ fontSize: '0.75rem', background: '#fffbeb', color: '#b45309', padding: '4px 12px', borderRadius: '100px', fontWeight: 600, alignSelf: 'flex-start' }}>
                   {offer.category}
                 </span>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '1rem' }}>{offer.profiles?.name}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>📍 {offer.profiles?.country}</div>
-                {offer.profiles?.linkedin && <a href={offer.profiles.linkedin} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#0077b5', fontWeight: 600, textDecoration: 'none' }}>🔗 LinkedIn</a>}
+
+                {/* Description */}
+                <p style={{ color: '#374151', fontSize: '0.9rem', lineHeight: 1.6, flex: 1 }}>{offer.description}</p>
+
+                {/* Availability */}
+                {offer.availability && (
+                  <p style={{ fontSize: '0.78rem', color: '#9ca3af' }}>🕐 {offer.availability}</p>
+                )}
+
+                {/* Profile info */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '8px', borderTop: '1px solid #f3f4f6' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg,#d97706,#f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0 }}>
+                    {offer.profiles?.name?.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{offer.profiles?.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{offer.profiles?.country}</div>
+                  </div>
                 </div>
-                <p style={{ color: '#555', fontSize: '0.875rem', lineHeight: 1.6, flex: 1 }}>{offer.description}</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {offer.profiles?.languages?.map(l => (
-                    <span key={l} style={{ fontSize: '0.75rem', background: '#f9fafb', border: '1px solid #e5e7eb', padding: '2px 10px', borderRadius: '100px', color: '#6b7280' }}>{l}</span>
-                  ))}
-                  {offer.availability && (
-                    <span style={{ fontSize: '0.75rem', background: '#f9fafb', border: '1px solid #e5e7eb', padding: '2px 10px', borderRadius: '100px', color: '#6b7280' }}>⏱ {offer.availability}</span>
+
+                {/* Languages */}
+                {(offer.profiles?.languages?.length ?? 0) > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                    {offer.profiles.languages.map(l => (
+                      <span key={l} style={{ fontSize: '0.7rem', background: '#f9fafb', border: '1px solid #e5e7eb', padding: '2px 8px', borderRadius: '100px', color: '#6b7280' }}>{l}</span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => handleMessage(offer.profiles?.id)}
+                    style={{ flex: 1, padding: '9px 12px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit' }}
+                  >
+                    💬 Message
+                  </button>
+                  {offer.profiles?.whatsapp && (
+                    <a
+                      href={whatsappUrl(offer.profiles.whatsapp)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ flex: 1, padding: '9px 12px', borderRadius: '100px', background: '#25d366', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'none', textAlign: 'center' }}
+                    >
+                      💚 WhatsApp
+                    </a>
+                  )}
+
+                  {offer.profiles?.linkedin && (
+                    <a
+                      href={offer.profiles.linkedin?.startsWith("http") ? offer.profiles.linkedin : `https://${offer.profiles.linkedin}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ padding: '9px 12px', borderRadius: '100px', background: '#f0f9ff', color: '#0077b5', border: '1px solid #bae6fd', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'none' }}
+                    >
+                      in
+                    </a>
                   )}
                 </div>
-                <button onClick={() => handleMessage(offer.profiles?.id)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit' }}>
-                  💬 Message {offer.profiles?.name?.split(' ')[0]}
-                </button>
+
               </div>
             ))}
           </div>

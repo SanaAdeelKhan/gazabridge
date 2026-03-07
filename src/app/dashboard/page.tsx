@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import Link from 'next/link'
 
-type Profile = { name: string; role: string; country: string; languages: string[]; linkedin?: string }
+type Profile = { name: string; role: string; country: string; languages: string[]; linkedin?: string; whatsapp?: string }
 type Offer = { id: string; category: string; description: string; availability: string }
 type Request = { id: string; category: string; description: string }
 
@@ -22,7 +22,7 @@ export default function DashboardPage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [showEditProfile, setShowEditProfile] = useState(false)
   const [form, setForm] = useState({ category: '', description: '', availability: '' })
-  const [editForm, setEditForm] = useState({ name: '', country: '', linkedin: '', languages: [] as string[] })
+  const [editForm, setEditForm] = useState({ name: '', country: '', linkedin: '', whatsapp: '', languages: [] as string[] })
   const [saving, setSaving] = useState(false)
   const [savingProfile, setSavingProfile] = useState(false)
   const [success, setSuccess] = useState('')
@@ -33,7 +33,7 @@ export default function DashboardPage() {
     const { data: prof } = await supabase.from('profiles').select('*').eq('id', user!.id).single()
     if (prof) {
       setProfile(prof)
-      setEditForm({ name: prof.name || '', country: prof.country || '', linkedin: prof.linkedin || '', languages: prof.languages || [] })
+      setEditForm({ name: prof.name || '', country: prof.country || '', linkedin: prof.linkedin || '', whatsapp: prof.whatsapp || '', languages: prof.languages || [] })
     }
     if (prof?.role === 'volunteer') {
       const { data } = await supabase.from('offers').select('*').eq('user_id', user!.id).order('created_at', { ascending: false })
@@ -51,6 +51,7 @@ export default function DashboardPage() {
       name: editForm.name,
       country: editForm.country,
       linkedin: editForm.linkedin,
+      whatsapp: editForm.whatsapp,
       languages: editForm.languages,
     }).eq('id', user!.id)
     if (!error) {
@@ -132,7 +133,8 @@ export default function DashboardPage() {
                       {profile?.role === 'volunteer' ? '🙌 Volunteer' : '🌟 Member'}
                     </span>
                     {profile?.country && <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>📍 {profile.country}</span>}
-                    {profile?.linkedin && <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#0077b5', fontWeight: 600, textDecoration: 'none' }}>🔗 LinkedIn</a>}
+                    {profile?.linkedin && <a href={profile?.linkedin?.startsWith("http") ? profile.linkedin : `https://${profile.linkedin}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#0077b5', fontWeight: 600, textDecoration: 'none' }}>🔗 LinkedIn</a>}
+                    {profile?.whatsapp && <a href={`https://wa.me/${profile.whatsapp.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.75rem", color: "#25d366", fontWeight: 600, textDecoration: "none" }}>💚 WhatsApp</a>}
                   </div>
                   {(profile?.languages?.length ?? 0) > 0 && (
                     <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
@@ -172,6 +174,10 @@ export default function DashboardPage() {
                   <div style={{ marginBottom: '16px' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>LinkedIn Profile URL</label>
                     <input value={editForm.linkedin} onChange={e => setEditForm(f => ({ ...f, linkedin: e.target.value }))} style={inputStyle} placeholder="https://linkedin.com/in/yourname" />
+                  </div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>WhatsApp Number</label>
+                    <input value={editForm.whatsapp} onChange={e => setEditForm(f => ({ ...f, whatsapp: e.target.value }))} style={inputStyle} placeholder="e.g. 923323645352" />
                   </div>
                   <div style={{ marginBottom: '20px' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '10px' }}>Languages</label>

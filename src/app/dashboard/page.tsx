@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import Link from 'next/link'
 import { sendWelcomeMessageIfNew } from '@/components/sendWelcomeMessage'
 
-type Profile = { name: string; role: string; country: string; languages: string[]; linkedin?: string; whatsapp_number?: string; whatsapp_group?: string }
+type Profile = { name: string; role: string; country: string; languages: string[]; linkedin?: string; whatsapp_number?: string; whatsapp_group?: string; english_level?: string }
 type Offer = { id: string; category: string; description: string; availability: string }
 type Request = { id: string; category: string; description: string }
 
@@ -221,6 +221,19 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {profile?.role !== 'volunteer' && (
+                <div style={{ background: profile?.english_level ? '#f0fdf4' : '#fffbeb', border: `1px solid ${profile?.english_level ? '#bbf7d0' : '#fde68a'}`, borderRadius: '16px', padding: '16px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>📝 English Level: </span>
+                    {profile?.english_level
+                      ? <span style={{ fontWeight: 700, color: profile.english_level === 'Advanced' ? '#16a34a' : profile.english_level === 'Intermediate' ? '#1d4ed8' : '#d97706' }}>{profile.english_level === 'Beginner' ? '🌱 Beginner' : profile.english_level === 'Intermediate' ? '📘 Intermediate' : '🏆 Advanced'}</span>
+                      : <span style={{ color: '#9ca3af' }}>Not taken yet</span>}
+                  </div>
+                  <a href="/quiz" style={{ padding: '8px 20px', borderRadius: '100px', background: '#d97706', color: '#fff', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none' }}>
+                    {profile?.english_level ? '🔄 Retake Quiz' : '📝 Take English Quiz'}
+                  </a>
+                </div>
+              )}
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 className="font-playfair" style={{ fontSize: '1.8rem', fontWeight: 700 }}>

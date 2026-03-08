@@ -10,7 +10,7 @@ type Request = {
   category: string
   description: string
   created_at: string
-  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string; whatsapp?: string }
+  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string; whatsapp?: string; is_vetted?: boolean; is_admin?: boolean }
 }
 
 const categories = ['All', '📚 Learn a language', '💻 Learn tech / AI skills', '💼 Career / CV help', '🫂 Mental health support', '📖 Academic tutoring', '🎨 Creative skills']
@@ -25,7 +25,7 @@ export default function NeedsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.from('requests').select('*, profiles(id, name, country, languages, linkedin, whatsapp)')
+    supabase.from('requests').select('*, profiles(id, name, country, languages, linkedin, whatsapp, is_vetted, is_admin)')
       .order('created_at', { ascending: false })
       .then(({ data }) => { if (data) { setRequests(data as any); setFiltered(data as any) } setLoading(false) })
   }, [])
@@ -91,7 +91,7 @@ export default function NeedsPage() {
                   {req.category}
                 </span>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '1rem' }}>{req.profiles?.name}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}><div style={{ fontWeight: 700, fontSize: "1rem" }}>{req.profiles?.name}</div>{req.profiles?.is_admin && <span style={{ fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "100px", background: "#fef3c7", color: "#d97706", border: "1px solid #fde68a" }}>⚙️ Admin</span>}{req.profiles?.is_vetted && <span style={{ fontSize: "0.7rem", fontWeight: 700, padding: "2px 10px", borderRadius: "100px", background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0" }}>✅ Vetted</span>}</div>
                   <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>📍 {req.profiles?.country}</div>
                 {req.profiles?.whatsapp && <a href={req.profiles.whatsapp.startsWith("http") ? req.profiles.whatsapp : `https://wa.me/${req.profiles.whatsapp.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.75rem", color: "#25d366", fontWeight: 600, textDecoration: "none" }}>💚 WhatsApp</a>}
                 {req.profiles?.linkedin && <a href={req.profiles.linkedin.startsWith("http") ? req.profiles.linkedin : `https://${req.profiles.linkedin}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.75rem", color: "#0077b5", fontWeight: 600, textDecoration: "none" }}>🔗 LinkedIn</a>}

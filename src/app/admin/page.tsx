@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 
-type Profile = { id: string; name: string; email?: string; is_volunteer: boolean; is_seeker: boolean; is_admin: boolean; country: string }
+type Profile = { id: string; name: string; email?: string; is_volunteer: boolean; is_seeker: boolean; is_admin: boolean; is_vetted: boolean; country: string }
 
 export default function AdminPage() {
   const { user } = useAuth()
@@ -33,7 +33,7 @@ export default function AdminPage() {
   async function fetchProfiles() {
     const { data } = await supabase
       .from('profiles')
-      .select('id, name, is_volunteer, is_seeker, is_admin, country')
+      .select("id, name, is_volunteer, is_seeker, is_admin, is_vetted, country")
       .order('created_at', { ascending: false })
     if (data) setProfiles(data)
   }
@@ -86,8 +86,15 @@ export default function AdminPage() {
     setSending(false)
   }
 
+  async function toggleVetted(profileId: string, current: boolean) {
+    const { error: vetError } = await supabase.from("profiles").update({ is_vetted: !current }).eq("id", profileId)
+    if (vetError) console.error("Vet error:", vetError)
+    fetchProfiles()
+  }
+
   async function toggleAdmin(profileId: string, current: boolean) {
-    await supabase.from('profiles').update({ is_admin: !current }).eq('id', profileId)
+    const { error: adminError } = await supabase.from('profiles').update({ is_admin: !current }).eq('id', profileId)
+    if (adminError) console.error('Admin error:', adminError)
     fetchProfiles()
   }
 
@@ -204,7 +211,8 @@ export default function AdminPage() {
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                     {p.is_volunteer && <span style={{ fontSize: '0.7rem', background: '#fffbeb', color: '#b45309', padding: '2px 10px', borderRadius: '100px', fontWeight: 600 }}>🙌 Volunteer</span>}
                     {p.is_seeker && <span style={{ fontSize: '0.7rem', background: '#f0fdf4', color: '#16a34a', padding: '2px 10px', borderRadius: '100px', fontWeight: 600 }}>🌟 Seeker</span>}
-                    {p.is_admin && <span style={{ fontSize: '0.7rem', background: '#fef3c7', color: '#d97706', padding: '2px 10px', borderRadius: '100px', fontWeight: 600 }}>⚙️ Admin</span>}
+                    {p.is_vetted && <span style={{ fontSize: "0.7rem", background: "#f0fdf4", color: "#16a34a", padding: "2px 10px", borderRadius: "100px", fontWeight: 600 }}>✅ Vetted</span>}
+                    {p.is_admin && <span style={{ fontSize: "0.7rem", background: "#fef3c7", color: "#d97706", padding: "2px 10px", borderRadius: "100px", fontWeight: 600 }}>⚙️ Admin</span>}
                   </div>
                 </div>
               ))}
@@ -228,16 +236,14 @@ export default function AdminPage() {
                     <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{p.country}</div>
                   </div>
                   {p.id !== user!.id && (
-                    <button onClick={() => toggleAdmin(p.id, p.is_admin)} style={{
-                      padding: '6px 16px', borderRadius: '100px', fontFamily: 'inherit', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
-                      background: p.is_admin ? '#fef2f2' : '#f0fdf4',
-                      color: p.is_admin ? '#dc2626' : '#16a34a',
-                      border: p.is_admin ? '1px solid #fecaca' : '1px solid #bbf7d0',
-                    }}>
-                      {p.is_admin ? 'Revoke Admin' : 'Make Admin'}
-                    </button>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      {p.is_seeker && <button onClick={() => toggleVetted(p.id, p.is_vetted)} style={{ padding: "6px 16px", borderRadius: "100px", fontFamily: "inherit", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600, background: p.is_vetted ? "#fef2f2" : "#f0fdf4", color: p.is_vetted ? "#dc2626" : "#16a34a", border: p.is_vetted ? "1px solid #fecaca" : "1px solid #bbf7d0" }}>{p.is_vetted ? "Unvet" : "✅ Vet"}</button>}
+                      <button onClick={() => toggleAdmin(p.id, p.is_admin)} style={{ padding: "6px 16px", borderRadius: "100px", fontFamily: "inherit", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600, background: p.is_admin ? "#fef2f2" : "#f0fdf4", color: p.is_admin ? "#dc2626" : "#16a34a", border: p.is_admin ? "1px solid #fecaca" : "1px solid #bbf7d0" }}>
+                        {p.is_admin ? "Revoke Admin" : "Make Admin"}
+                      </button>
+                    </div>
                   )}
-                  {p.id === user!.id && <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>You</span>}
+                  {p.id === user!.id && <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>You</span>}
                 </div>
               ))}
             </div>

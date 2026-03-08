@@ -87,6 +87,7 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-2">
+          <Link href="/how-it-works" className="px-4 py-2 rounded-full text-base font-medium hover:bg-amber-50 transition">How it Works</Link>
           {user && <Link href="/volunteers" className="px-4 py-2 rounded-full text-base font-medium hover:bg-amber-50 transition">Volunteers</Link>}
           {user && <Link href="/needs" className="px-4 py-2 rounded-full text-base font-medium hover:bg-amber-50 transition">Needs</Link>}
           {user && (
@@ -121,6 +122,7 @@ export default function Navbar() {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden px-6 pb-4 flex flex-col gap-2 border-t border-amber-100">
+          <Link href="/how-it-works" className="py-2 text-base font-medium" onClick={() => setMenuOpen(false)}>How it Works</Link>
           {user && <Link href="/volunteers" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Volunteers</Link>}
           {user && <Link href="/needs" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Needs</Link>}
           {user && (

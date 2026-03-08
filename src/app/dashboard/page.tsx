@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import Link from 'next/link'
+import { sendWelcomeMessageIfNew } from '@/components/sendWelcomeMessage'
 
 type Profile = { name: string; role: string; country: string; languages: string[]; linkedin?: string; whatsapp_number?: string; whatsapp_group?: string }
 type Offer = { id: string; category: string; description: string; availability: string }
@@ -27,7 +28,12 @@ export default function DashboardPage() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [success, setSuccess] = useState('')
 
-  useEffect(() => { if (user) fetchData() }, [user])
+  useEffect(() => {
+    if (user) {
+      fetchData()
+      sendWelcomeMessageIfNew(user.id)
+    }
+  }, [user])
 
   async function fetchData() {
     const { data: prof } = await supabase.from('profiles').select('*').eq('id', user!.id).single()

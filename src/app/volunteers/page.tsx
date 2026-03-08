@@ -4,13 +4,14 @@ import Navbar from '@/components/Navbar'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import Link from 'next/link'
 
 type Offer = {
   id: string
   category: string
   description: string
   availability: string
-  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string; whatsapp?: string }
+  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string; whatsapp_number?: string; whatsapp_group?: string }
 }
 
 const categories = ['All', '📚 Teaching / Language', '💻 Tech / Coding / AI', '💼 Career / Mentorship', '🫂 Mental Health', '🎨 Creative / Design', '📖 Academic Tutoring']
@@ -25,7 +26,7 @@ export default function VolunteersPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.from('offers').select('*, profiles(id, name, country, languages, linkedin, whatsapp)')
+    supabase.from('offers').select('*, profiles(id, name, country, languages, linkedin, whatsapp_number, whatsapp_group)')
       .order('created_at', { ascending: false })
       .then(({ data }) => { if (data) { setOffers(data as any); setFiltered(data as any) } setLoading(false) })
   }, [])
@@ -43,13 +44,6 @@ export default function VolunteersPage() {
   function handleMessage(profileId: string) {
     if (!user) { router.push('/login'); return }
     router.push(`/messages?to=${profileId}`)
-  }
-
-  function whatsappUrl(whatsapp: string) {
-    // Support both numbers and group links
-    if (whatsapp.startsWith('https://')) return whatsapp
-    const clean = whatsapp.replace(/[^0-9]/g, '')
-    return `https://wa.me/${clean}`
   }
 
   return (
@@ -106,15 +100,17 @@ export default function VolunteersPage() {
                   <p style={{ fontSize: '0.78rem', color: '#9ca3af' }}>🕐 {offer.availability}</p>
                 )}
 
-                {/* Profile info */}
+                {/* Profile info — clickable name */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '8px', borderTop: '1px solid #f3f4f6' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg,#d97706,#f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0 }}>
-                    {offer.profiles?.name?.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{offer.profiles?.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{offer.profiles?.country}</div>
-                  </div>
+                  <Link href={`/profile/${offer.profiles?.id}`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg,#d97706,#f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0 }}>
+                      {offer.profiles?.name?.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#1a1a2e' }}>{offer.profiles?.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{offer.profiles?.country}</div>
+                    </div>
+                  </Link>
                 </div>
 
                 {/* Languages */}
@@ -134,23 +130,33 @@ export default function VolunteersPage() {
                   >
                     💬 Message
                   </button>
-                  {offer.profiles?.whatsapp && (
+
+                  {offer.profiles?.whatsapp_number && (
                     <a
-                      href={whatsappUrl(offer.profiles.whatsapp)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ flex: 1, padding: '9px 12px', borderRadius: '100px', background: '#25d366', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'none', textAlign: 'center' }}
+                    
+                      href={`https://wa.me/${offer.profiles.whatsapp_number.replace(/[^0-9]/g, '')}`}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ flex: 1, padding: '9px 12px', borderRadius: '100px', background: '#25d366', color: '#fff', fontWeight: 600, fontSize: '0.82rem', textDecoration: 'none', textAlign: 'center' }}
                     >
                       💚 WhatsApp
                     </a>
                   )}
 
+                  {offer.profiles?.whatsapp_group && (
+                    <a
+                      href={offer.profiles.whatsapp_group}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ flex: 1, padding: '9px 12px', borderRadius: '100px', background: '#128c7e', color: '#fff', fontWeight: 600, fontSize: '0.82rem', textDecoration: 'none', textAlign: 'center' }}
+                    >
+                      👥 Join Group
+                    </a>
+                  )}
+
                   {offer.profiles?.linkedin && (
                     <a
-                      href={offer.profiles.linkedin?.startsWith("http") ? offer.profiles.linkedin : `https://${offer.profiles.linkedin}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ padding: '9px 12px', borderRadius: '100px', background: '#f0f9ff', color: '#0077b5', border: '1px solid #bae6fd', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'none' }}
+                      href={offer.profiles.linkedin.startsWith('http') ? offer.profiles.linkedin : `https://${offer.profiles.linkedin}`}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ padding: '9px 12px', borderRadius: '100px', background: '#f0f9ff', color: '#0077b5', border: '1px solid #bae6fd', fontWeight: 600, fontSize: '0.82rem', textDecoration: 'none' }}
                     >
                       in
                     </a>

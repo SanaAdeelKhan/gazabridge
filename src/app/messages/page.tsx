@@ -15,6 +15,7 @@ function MessagesContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const toId = searchParams.get('to')
+  const isGift = searchParams.get('gift') === 'true'
 
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [activeConvo, setActiveConvo] = useState<Conversation | null>(null)
@@ -30,6 +31,7 @@ function MessagesContent() {
   useEffect(() => {
     if (!user || !toId) return
     startOrOpenConvo(toId)
+    if (isGift) setNewMsg(`🎁 Hi! I'd love to gift you a free course. What topic would help you most right now? (e.g. English, coding, design...)`)
   }, [user, toId])
 
   useEffect(() => {

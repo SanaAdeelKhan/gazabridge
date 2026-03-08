@@ -89,8 +89,8 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-2">
-          <Link href="/volunteers" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition">Volunteers</Link>
-          <Link href="/needs" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition">Needs</Link>
+          {user && <Link href="/volunteers" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition">Volunteers</Link>}
+          {user && <Link href="/needs" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition">Needs</Link>}
           {user && (
             <Link href="/messages" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition" style={{ display: 'inline-flex', alignItems: 'center' }}>
               Messages{badge}
@@ -123,8 +123,8 @@ export default function Navbar() {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden px-6 pb-4 flex flex-col gap-2 border-t border-amber-100">
-          <Link href="/volunteers" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Volunteers</Link>
-          <Link href="/needs" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Needs</Link>
+          {user && <Link href="/volunteers" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Volunteers</Link>}
+          {user && <Link href="/needs" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Needs</Link>}
           {user && (
             <Link href="/messages" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)} style={{ display: 'inline-flex', alignItems: 'center' }}>
               Messages{badge}

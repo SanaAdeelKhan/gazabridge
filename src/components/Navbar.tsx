@@ -81,35 +81,33 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-amber-100 bg-[#FDF8F0]/90 backdrop-blur-md">
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-6 py-2 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="font-playfair text-2xl font-black tracking-tight">
-          Gaza<span className="text-amber-600">Bridge</span>
-        </Link>
+        <Link href="/"><img src="/logo.png" alt="GazaBridge" style={{ height: "180px", width: "auto", objectFit: "contain", marginTop: "-16px", marginBottom: "-16px" }} /></Link>
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-2">
-          {user && <Link href="/volunteers" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition">Volunteers</Link>}
-          {user && <Link href="/needs" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition">Needs</Link>}
+          {user && <Link href="/volunteers" className="px-4 py-2 rounded-full text-base font-medium hover:bg-amber-50 transition">Volunteers</Link>}
+          {user && <Link href="/needs" className="px-4 py-2 rounded-full text-base font-medium hover:bg-amber-50 transition">Needs</Link>}
           {user && (
-            <Link href="/messages" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition" style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <Link href="/messages" className="px-4 py-2 rounded-full text-base font-medium hover:bg-amber-50 transition" style={{ display: "inline-flex", alignItems: "center" }}>
               Messages{badge}
             </Link>
           )}
           {user ? (
             <div className="flex items-center gap-2 ml-2">
               {isAdmin && (
-                <Link href="/admin" className="px-4 py-2 rounded-full text-sm font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 transition">
+                <Link href="/admin" className="px-4 py-2 rounded-full text-base font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 transition">
                   ⚙️ Admin
                 </Link>
               )}
-              <Link href="/dashboard" className="px-4 py-2 rounded-full text-sm font-medium bg-amber-50 hover:bg-amber-100 transition">Dashboard</Link>
-              <button onClick={signOut} className="px-4 py-2 rounded-full text-sm font-medium border border-amber-200 hover:border-amber-400 transition">Sign Out</button>
+              <Link href="/dashboard" className="px-4 py-2 rounded-full text-base font-medium bg-amber-50 hover:bg-amber-100 transition">Dashboard</Link>
+              <button onClick={signOut} className="px-4 py-2 rounded-full text-base font-medium border border-amber-200 hover:border-amber-400 transition">Sign Out</button>
             </div>
           ) : (
             <div className="flex items-center gap-2 ml-2">
-              <Link href="/login" className="px-4 py-2 rounded-full text-sm font-medium border border-amber-300 text-amber-700 hover:bg-amber-50 transition">Login</Link>
-              <Link href="/join" className="px-4 py-2 rounded-full text-sm font-semibold bg-amber-600 text-white hover:bg-amber-700 transition">Join Free</Link>
+              <Link href="/login" className="px-4 py-2 rounded-full text-base font-medium border border-amber-300 text-amber-700 hover:bg-amber-50 transition">Login</Link>
+              <Link href="/join" className="px-4 py-2 rounded-full text-base font-semibold bg-amber-600 text-white hover:bg-amber-700 transition">Join Free</Link>
             </div>
           )}
         </div>

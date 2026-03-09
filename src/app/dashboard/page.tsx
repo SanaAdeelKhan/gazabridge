@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
@@ -29,12 +30,19 @@ export default function DashboardPage() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [success, setSuccess] = useState('')
 
+  const router = useRouter()
+
   useEffect(() => {
     if (user) {
       fetchData()
       sendWelcomeMessageIfNew(user.id)
     }
   }, [user])
+  useEffect(() => {
+    if (!loading && profile && (!profile.role || !profile.name)) {
+      router.push('/complete-profile')
+    }
+  }, [loading, profile])
 
   async function fetchData() {
     const { data: prof } = await supabase.from('profiles').select('*').eq('id', user!.id).single()
@@ -161,6 +169,11 @@ export default function DashboardPage() {
                   </button>
                   <button onClick={signOut} style={{ padding: '8px 20px', borderRadius: '100px', border: '1px solid #e5e7eb', background: '#fff', fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit' }}>
                     Sign Out
+                  </button>
+                  <button onClick={async () => {
+                    await signOut()
+                  }} style={{ padding: '8px 20px', borderRadius: '100px', border: '1px solid #fecaca', background: '#fff', fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit', color: '#ef4444' }}>
+                    🗑️ Delete Profile
                   </button>
                 </div>
               </div>

@@ -160,14 +160,14 @@ function MessagesContent() {
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px 24px', height: 'calc(100vh - 120px)' }}>
       <h1 className="font-playfair" style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '24px' }}>Messages</h1>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', height: 'calc(100% - 60px)', border: '1px solid #fde68a', borderRadius: '20px', overflow: 'hidden' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', height: 'calc(100% - 60px)', border: '1px solid #fde68a', borderRadius: '20px', overflow: 'hidden', position: 'relative' as const }}>
 
         {/* Sidebar */}
-        <div style={{ borderRight: '1px solid #fde68a', display: 'flex', flexDirection: 'column', background: '#fffbeb' }}>
+        <div style={{ borderRight: '1px solid #fde68a', display: 'flex', flexDirection: 'column', background: '#fffbeb', height: '100%', overflow: 'hidden' }}>
           <div style={{ padding: '20px', borderBottom: '1px solid #fde68a', fontWeight: 700, fontSize: '0.95rem' }}>
             Conversations ({conversations.length})
           </div>
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#fde68a #fffbeb' }}>
             {loading ? (
               <div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: '0.875rem' }}>Loading...</div>
             ) : conversations.length === 0 ? (

@@ -39,7 +39,9 @@ export default function DashboardPage() {
     }
   }, [user])
   useEffect(() => {
-    if (!loading && profile && (!profile.role || !profile.name)) {
+    if (loading) return
+    if (!user) return
+    if (!profile || !profile.role || !profile.name) {
       router.push('/complete-profile')
     }
   }, [loading, profile])
@@ -171,9 +173,14 @@ export default function DashboardPage() {
                     Sign Out
                   </button>
                   <button onClick={async () => {
+                    if (!confirm('Are you sure you want to delete your account? This cannot be undone.')) return
+                    const { error: offErr } = await supabase.from('offers').delete().eq('user_id', user!.id)
+                    const { error: reqErr } = await supabase.from('requests').delete().eq('user_id', user!.id)
+                    const { error: profErr } = await supabase.from('profiles').delete().eq('id', user!.id)
                     await signOut()
+                    window.location.href = '/'
                   }} style={{ padding: '8px 20px', borderRadius: '100px', border: '1px solid #fecaca', background: '#fff', fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit', color: '#ef4444' }}>
-                    🗑️ Delete Profile
+                    🗑️ Delete Account
                   </button>
                 </div>
               </div>

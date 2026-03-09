@@ -15,6 +15,7 @@ function MessagesContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const toId = searchParams.get('to')
+  const ADMIN_ID = 'c7990cfb-25a6-4f4c-bf32-ac23900b12f6'
   const isGift = searchParams.get('gift') === 'true'
 
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -186,7 +187,7 @@ function MessagesContent() {
                   {getInitials(c.other?.name)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{c.other?.name}</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{c.other?.id === ADMIN_ID ? '🛡️ GazaBridge Admin' : c.other?.name}</div>
                   <div style={{ fontSize: '0.75rem', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.lastMsg}</div>
                 </div>
               </div>
@@ -210,7 +211,7 @@ function MessagesContent() {
                   {getInitials(activeConvo.other?.name)}
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700 }}>{activeConvo.other?.name}</div>
+                  <div style={{ fontWeight: 700 }}>{activeConvo.other?.id === ADMIN_ID ? '🛡️ GazaBridge Admin' : activeConvo.other?.name}</div>
                   <div style={{ fontSize: '0.75rem', color: '#4A5C3A' }}>🟢 {activeConvo.other?.country}</div>
                 </div>
               </div>

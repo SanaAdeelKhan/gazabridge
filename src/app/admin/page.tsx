@@ -41,46 +41,45 @@ export default function AdminPage() {
   async function sendBroadcast() {
     if (!broadcast.message.trim()) return
     setSending(true)
-
+    const ADMIN_ID = 'c7990cfb-25a6-4f4c-bf32-ac23900b12f6'
     let targets: Profile[] = []
     if (broadcast.target === 'all') targets = profiles
     else if (broadcast.target === 'volunteers') targets = profiles.filter(p => p.is_volunteer)
     else if (broadcast.target === 'seekers') targets = profiles.filter(p => p.is_seeker)
-
-    // Create conversations + messages for each target
+    let sent = 0
     for (const target of targets) {
-      if (target.id === user!.id) continue
-
-      // Find or create conversation
+      if (target.id === ADMIN_ID) continue
       let convId: string | null = null
       const { data: existing } = await supabase
         .from('conversations')
         .select('id')
-        .or(`and(participant1.eq.${user!.id},participant2.eq.${target.id}),and(participant1.eq.${target.id},participant2.eq.${user!.id})`)
-        .single()
-
+        .eq('volunteer_id', ADMIN_ID)
+        .eq('seeker_id', target.id)
+        .maybeSingle()
       if (existing) {
         convId = existing.id
       } else {
-        const { data: newConv } = await supabase
+        const { data: newConv, error: convErr } = await supabase
           .from('conversations')
-          .insert({ participant1: user!.id, participant2: target.id })
+          .insert({ volunteer_id: ADMIN_ID, seeker_id: target.id })
           .select('id')
           .single()
+        if (convErr) { console.error('Conv error:', convErr); continue }
         convId = newConv?.id
       }
-
       if (convId) {
-        await supabase.from('messages').insert({
+        const { error: msgErr } = await supabase.from('messages').insert({
           conversation_id: convId,
-          sender_id: user!.id,
+          sender_id: ADMIN_ID,
+          receiver_id: target.id,
           content: `📢 ${broadcast.message}`,
           is_read: false,
         })
+        if (msgErr) { console.error('Msg error:', msgErr); continue }
+        sent++
       }
     }
-
-    setSuccess(`✅ Broadcast sent to ${targets.length - 1} users!`)
+    setSuccess(`✅ Broadcast sent to ${sent} users!`)
     setTimeout(() => setSuccess(''), 4000)
     setBroadcast(b => ({ ...b, message: '' }))
     setSending(false)

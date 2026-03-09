@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import Link from 'next/link'
 import { sendWelcomeMessageIfNew } from '@/components/sendWelcomeMessage'
+import MatchSection from '@/components/MatchSection'
 
 type Profile = { name: string; role: string; country: string; languages: string[]; linkedin?: string; whatsapp_number?: string; whatsapp_group?: string; english_level?: string }
 type Offer = { id: string; category: string; description: string; availability: string }
@@ -234,6 +235,12 @@ export default function DashboardPage() {
                   </a>
                 </div>
               )}
+              <MatchSection
+                  userId={user!.id}
+                  userRole={profile?.role || ''}
+                  userLanguages={profile?.languages || []}
+                  userCategories={profile?.role === 'volunteer' ? offers.map(o => o.category) : requests.map(r => r.category)}
+                />
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 className="font-playfair" style={{ fontSize: '1.8rem', fontWeight: 700 }}>

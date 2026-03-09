@@ -10,7 +10,7 @@ type Request = {
   category: string
   description: string
   created_at: string
-  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string; whatsapp?: string; is_vetted?: boolean; is_admin?: boolean }
+  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string; whatsapp?: string; is_vetted?: boolean; is_admin?: boolean; english_level?: string }
 }
 
 type Profile = { role: string }
@@ -28,7 +28,7 @@ export default function NeedsPage() {
   const [myProfile, setMyProfile] = useState<Profile | null>(null)
 
   useEffect(() => {
-    supabase.from('requests').select('*, profiles(id, name, country, languages, linkedin, whatsapp, is_vetted, is_admin)')
+    supabase.from('requests').select('*, profiles(id, name, country, languages, linkedin, whatsapp, is_vetted, is_admin, english_level)')
       .order('created_at', { ascending: false })
       .then(({ data }) => { if (data) { setRequests(data as any); setFiltered(data as any) } setLoading(false) })
   }, [])
@@ -111,6 +111,7 @@ export default function NeedsPage() {
                     <div style={{ fontWeight: 700, fontSize: '1rem' }}>{req.profiles?.name}</div>
                     {req.profiles?.is_admin && <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '2px 8px', borderRadius: '100px', background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>⚙️ Admin</span>}
                     {req.profiles?.is_vetted && <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '2px 10px', borderRadius: '100px', background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0' }}>✅ Vetted</span>}
+                    {req.profiles?.english_level && <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '2px 10px', borderRadius: '100px', background: req.profiles.english_level === 'Advanced' ? '#f0fdf4' : req.profiles.english_level === 'Intermediate' ? '#dbeafe' : '#fef3c7', color: req.profiles.english_level === 'Advanced' ? '#16a34a' : req.profiles.english_level === 'Intermediate' ? '#1d4ed8' : '#d97706', border: req.profiles.english_level === 'Advanced' ? '1px solid #bbf7d0' : req.profiles.english_level === 'Intermediate' ? '1px solid #bfdbfe' : '1px solid #fde68a' }}>{req.profiles.english_level === 'Beginner' ? '🌱 Beginner English' : req.profiles.english_level === 'Intermediate' ? '📘 Intermediate English' : '🏆 Advanced English'}</span>}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>📍 {req.profiles?.country}</div>
                   {req.profiles?.whatsapp && <a href={req.profiles.whatsapp.startsWith('http') ? req.profiles.whatsapp : `https://wa.me/${req.profiles.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#25d366', fontWeight: 600, textDecoration: 'none' }}>💚 WhatsApp</a>}

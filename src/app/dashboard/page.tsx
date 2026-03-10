@@ -22,9 +22,14 @@ export default function DashboardPage() {
   const [offers, setOffers] = useState<Offer[]>([])
   const [requests, setRequests] = useState<Request[]>([])
   const [loading, setLoading] = useState(true)
-  const [showAddForm, setShowAddForm] = useState(false)
+
+  // Separate add-form state for offers vs requests
+  const [showAddOffer, setShowAddOffer] = useState(false)
+  const [showAddRequest, setShowAddRequest] = useState(false)
+  const [offerForm, setOfferForm] = useState({ category: '', description: '', availability: '' })
+  const [requestForm, setRequestForm] = useState({ category: '', description: '' })
+
   const [showEditProfile, setShowEditProfile] = useState(false)
-  const [form, setForm] = useState({ category: '', description: '', availability: '' })
   const [editForm, setEditForm] = useState({ name: '', country: '', linkedin: '', whatsapp_number: '', whatsapp_group: '', languages: [] as string[], gender: '' })
   const [saving, setSaving] = useState(false)
   const [savingProfile, setSavingProfile] = useState(false)
@@ -38,6 +43,7 @@ export default function DashboardPage() {
       sendWelcomeMessageIfNew(user.id)
     }
   }, [user])
+
   useEffect(() => {
     if (loading) return
     if (!user) return
@@ -52,26 +58,22 @@ export default function DashboardPage() {
       setProfile(prof)
       setEditForm({ name: prof.name || '', country: prof.country || '', linkedin: prof.linkedin || '', whatsapp_number: prof.whatsapp_number || '', whatsapp_group: prof.whatsapp_group || '', languages: prof.languages || [], gender: prof.gender || '' })
     }
-    if (prof?.role === 'volunteer') {
-      const { data } = await supabase.from('offers').select('*').eq('user_id', user!.id).order('created_at', { ascending: false })
-      if (data) setOffers(data)
-    } else {
-      const { data } = await supabase.from('requests').select('*').eq('user_id', user!.id).order('created_at', { ascending: false })
-      if (data) setRequests(data)
-    }
+    // Always fetch BOTH offers and requests regardless of role
+    const [{ data: offersData }, { data: requestsData }] = await Promise.all([
+      supabase.from('offers').select('*').eq('user_id', user!.id).order('created_at', { ascending: false }),
+      supabase.from('requests').select('*').eq('user_id', user!.id).order('created_at', { ascending: false }),
+    ])
+    if (offersData) setOffers(offersData)
+    if (requestsData) setRequests(requestsData)
     setLoading(false)
   }
 
   async function saveProfile() {
     setSavingProfile(true)
     const { error } = await supabase.from('profiles').update({
-      name: editForm.name,
-      country: editForm.country,
-      linkedin: editForm.linkedin,
-      whatsapp_number: editForm.whatsapp_number,
-      whatsapp_group: editForm.whatsapp_group,
-      languages: editForm.languages,
-      gender: editForm.gender,
+      name: editForm.name, country: editForm.country, linkedin: editForm.linkedin,
+      whatsapp_number: editForm.whatsapp_number, whatsapp_group: editForm.whatsapp_group,
+      languages: editForm.languages, gender: editForm.gender,
     }).eq('id', user!.id)
     if (!error) {
       setSuccess('Profile updated!')
@@ -85,23 +87,29 @@ export default function DashboardPage() {
   function toggleEditLang(lang: string) {
     setEditForm(f => ({
       ...f,
-      languages: f.languages.includes(lang)
-        ? f.languages.filter(l => l !== lang)
-        : [...f.languages, lang]
+      languages: f.languages.includes(lang) ? f.languages.filter(l => l !== lang) : [...f.languages, lang]
     }))
   }
 
-  async function addItem() {
-    if (!form.category || !form.description) return
+  async function addOffer() {
+    if (!offerForm.category || !offerForm.description) return
     setSaving(true)
-    if (profile?.role === 'volunteer') {
-      await supabase.from('offers').insert({ user_id: user!.id, category: form.category, description: form.description, availability: form.availability, tags: [] })
-    } else {
-      await supabase.from('requests').insert({ user_id: user!.id, category: form.category, description: form.description, tags: [] })
-    }
-    setForm({ category: '', description: '', availability: '' })
-    setShowAddForm(false)
-    setSuccess('Added successfully!')
+    await supabase.from('offers').insert({ user_id: user!.id, category: offerForm.category, description: offerForm.description, availability: offerForm.availability, tags: [] })
+    setOfferForm({ category: '', description: '', availability: '' })
+    setShowAddOffer(false)
+    setSuccess('Offer added!')
+    setTimeout(() => setSuccess(''), 3000)
+    fetchData()
+    setSaving(false)
+  }
+
+  async function addRequest() {
+    if (!requestForm.category || !requestForm.description) return
+    setSaving(true)
+    await supabase.from('requests').insert({ user_id: user!.id, category: requestForm.category, description: requestForm.description, tags: [] })
+    setRequestForm({ category: '', description: '' })
+    setShowAddRequest(false)
+    setSuccess('Request added!')
     setTimeout(() => setSuccess(''), 3000)
     fetchData()
     setSaving(false)
@@ -176,9 +184,9 @@ export default function DashboardPage() {
                   </button>
                   <button onClick={async () => {
                     if (!confirm('Are you sure you want to delete your account? This cannot be undone.')) return
-                    const { error: offErr } = await supabase.from('offers').delete().eq('user_id', user!.id)
-                    const { error: reqErr } = await supabase.from('requests').delete().eq('user_id', user!.id)
-                    const { error: profErr } = await supabase.from('profiles').delete().eq('id', user!.id)
+                    await supabase.from('offers').delete().eq('user_id', user!.id)
+                    await supabase.from('requests').delete().eq('user_id', user!.id)
+                    await supabase.from('profiles').delete().eq('id', user!.id)
                     await signOut()
                     window.location.href = '/'
                   }} style={{ padding: '8px 20px', borderRadius: '100px', border: '1px solid #fecaca', background: '#fff', fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit', color: '#ef4444' }}>
@@ -219,22 +227,14 @@ export default function DashboardPage() {
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         {['👨 Male', '👩 Female', '🔒 Prefer not to say'].map(g => (
                           <button key={g} type="button" onClick={() => setEditForm(f => ({ ...f, gender: g }))}
-                            style={{ padding: '8px 18px', borderRadius: '100px', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit',
-                              border: editForm.gender === g ? '2px solid #d97706' : '2px solid #e5e7eb',
-                              background: editForm.gender === g ? '#d97706' : '#fff',
-                              color: editForm.gender === g ? '#fff' : '#374151' }}>{g}</button>
+                            style={{ padding: '8px 18px', borderRadius: '100px', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit', border: editForm.gender === g ? '2px solid #d97706' : '2px solid #e5e7eb', background: editForm.gender === g ? '#d97706' : '#fff', color: editForm.gender === g ? '#fff' : '#374151' }}>{g}</button>
                         ))}
                       </div>
                     </div>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '10px' }}>Languages</label>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                       {all_langs.map(l => (
-                        <button key={l} onClick={() => toggleEditLang(l)} style={{
-                          padding: '6px 16px', borderRadius: '100px', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit',
-                          border: editForm.languages.includes(l) ? '2px solid #d97706' : '2px solid #e5e7eb',
-                          background: editForm.languages.includes(l) ? '#d97706' : '#fff',
-                          color: editForm.languages.includes(l) ? '#fff' : '#374151',
-                        }}>{l}</button>
+                        <button key={l} onClick={() => toggleEditLang(l)} style={{ padding: '6px 16px', borderRadius: '100px', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit', border: editForm.languages.includes(l) ? '2px solid #d97706' : '2px solid #e5e7eb', background: editForm.languages.includes(l) ? '#d97706' : '#fff', color: editForm.languages.includes(l) ? '#fff' : '#374151' }}>{l}</button>
                       ))}
                     </div>
                   </div>
@@ -256,6 +256,7 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {/* English quiz banner — only for seekers */}
               {profile?.role !== 'volunteer' && (
                 <div style={{ background: profile?.english_level ? '#f0fdf4' : '#fffbeb', border: `1px solid ${profile?.english_level ? '#bbf7d0' : '#fde68a'}`, borderRadius: '16px', padding: '16px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                   <div>
@@ -269,48 +270,49 @@ export default function DashboardPage() {
                   </a>
                 </div>
               )}
-              <MatchSection
-                  userId={user!.id}
-                  userRole={profile?.role || ''}
-                  userLanguages={profile?.languages || []}
-                  userCategories={profile?.role === 'volunteer' ? offers.map(o => o.category) : requests.map(r => r.category)}
-                />
-              {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <h2 className="font-playfair" style={{ fontSize: '1.8rem', fontWeight: 700 }}>
-                  {profile?.role === 'volunteer' ? 'Your Offers' : 'Your Requests'}
-                </h2>
-                <button onClick={() => setShowAddForm(!showAddForm)} style={{
-                  padding: '10px 24px', borderRadius: '100px', background: '#d97706', color: '#fff',
-                  border: 'none', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit'
-                }}>
-                  {showAddForm ? '✕ Cancel' : '+ Add New'}
-                </button>
-              </div>
 
-              {/* Add form */}
-              {showAddForm && (
-                <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #fde68a', padding: '28px', marginBottom: '24px' }}>
-                  <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>
-                    {profile?.role === 'volunteer' ? 'Add a new offer' : 'Add a new request'}
-                  </h3>
-                  <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Category</label>
-                    <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} style={{ ...inputStyle, background: '#fff' }}>
-                      <option value="">Select a category</option>
-                      {(profile?.role === 'volunteer' ? categories_vol : categories_seek).map(c => <option key={c}>{c}</option>)}
-                    </select>
+              {/* Match section */}
+              <MatchSection
+                userId={user!.id}
+                userRole={profile?.role || ''}
+                userLanguages={profile?.languages || []}
+                userCategories={[
+                  ...offers.map(o => o.category),
+                  ...requests.map(r => r.category),
+                ]}
+              />
+
+              {/* ── OFFERS SECTION ── */}
+              <div style={{ marginTop: '40px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <div>
+                    <h2 className="font-playfair" style={{ fontSize: '1.6rem', fontWeight: 700 }}>🙌 Your Offers</h2>
+                    <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '2px' }}>Skills or time you're offering to others</p>
                   </div>
-                  <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Description</label>
-                    <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                      style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' as const }}
-                      placeholder={profile?.role === 'volunteer' ? 'Describe what you can offer...' : 'Describe what you need...'} />
-                  </div>
-                  {profile?.role === 'volunteer' && (
+                  <button onClick={() => { setShowAddOffer(!showAddOffer); setShowAddRequest(false) }} style={{ padding: '10px 24px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    {showAddOffer ? '✕ Cancel' : '+ Add Offer'}
+                  </button>
+                </div>
+
+                {showAddOffer && (
+                  <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #fde68a', padding: '28px', marginBottom: '20px' }}>
+                    <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>Add a new offer</h3>
+                    <div style={{ marginBottom: '16px' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Category</label>
+                      <select value={offerForm.category} onChange={e => setOfferForm(f => ({ ...f, category: e.target.value }))} style={{ ...inputStyle, background: '#fff' }}>
+                        <option value="">Select a category</option>
+                        {categories_vol.map(c => <option key={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div style={{ marginBottom: '16px' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Description</label>
+                      <textarea value={offerForm.description} onChange={e => setOfferForm(f => ({ ...f, description: e.target.value }))}
+                        style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' as const }}
+                        placeholder="Describe what you can offer..." />
+                    </div>
                     <div style={{ marginBottom: '20px' }}>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Availability</label>
-                      <select value={form.availability} onChange={e => setForm(f => ({ ...f, availability: e.target.value }))} style={{ ...inputStyle, background: '#fff' }}>
+                      <select value={offerForm.availability} onChange={e => setOfferForm(f => ({ ...f, availability: e.target.value }))} style={{ ...inputStyle, background: '#fff' }}>
                         <option value="">Select availability</option>
                         <option>1–2 hours/week</option>
                         <option>3–5 hours/week</option>
@@ -318,25 +320,22 @@ export default function DashboardPage() {
                         <option>10+ hours/week</option>
                       </select>
                     </div>
-                  )}
-                  <button onClick={addItem} disabled={saving} style={{ padding: '12px 32px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: saving ? 0.6 : 1 }}>
-                    {saving ? 'Saving...' : 'Save'}
-                  </button>
-                </div>
-              )}
+                    <button onClick={addOffer} disabled={saving} style={{ padding: '12px 32px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: saving ? 0.6 : 1 }}>
+                      {saving ? 'Saving...' : 'Save Offer'}
+                    </button>
+                  </div>
+                )}
 
-              {/* List */}
-              {profile?.role === 'volunteer' ? (
-                offers.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '60px', border: '2px dashed #fde68a', borderRadius: '20px' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '12px' }}>📭</div>
-                    <p style={{ color: '#9ca3af', marginBottom: '20px' }}>No offers yet</p>
-                    <button onClick={() => setShowAddForm(true)} style={{ padding: '12px 28px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                {offers.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '48px', border: '2px dashed #fde68a', borderRadius: '20px' }}>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📭</div>
+                    <p style={{ color: '#9ca3af', marginBottom: '16px' }}>No offers yet</p>
+                    <button onClick={() => setShowAddOffer(true)} style={{ padding: '10px 24px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.875rem' }}>
                       Post Your First Offer
                     </button>
                   </div>
                 ) : offers.map(offer => (
-                  <div key={offer.id} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #fde68a', padding: '24px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', gap: '16px' }}>
+                  <div key={offer.id} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #fde68a', padding: '24px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', gap: '16px' }}>
                     <div style={{ flex: 1 }}>
                       <span style={{ fontSize: '0.75rem', background: '#fffbeb', color: '#b45309', padding: '3px 12px', borderRadius: '100px', fontWeight: 600 }}>{offer.category}</span>
                       <p style={{ color: '#555', fontSize: '0.875rem', lineHeight: 1.6, marginTop: '10px' }}>{offer.description}</p>
@@ -348,18 +347,53 @@ export default function DashboardPage() {
                       Delete
                     </button>
                   </div>
-                ))
-              ) : (
-                requests.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '60px', border: '2px dashed #d1fae5', borderRadius: '20px' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '12px' }}>📭</div>
-                    <p style={{ color: '#9ca3af', marginBottom: '20px' }}>No requests yet</p>
-                    <button onClick={() => setShowAddForm(true)} style={{ padding: '12px 28px', borderRadius: '100px', background: '#4A5C3A', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                ))}
+              </div>
+
+              {/* ── REQUESTS SECTION ── */}
+              <div style={{ marginTop: '48px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <div>
+                    <h2 className="font-playfair" style={{ fontSize: '1.6rem', fontWeight: 700 }}>🌟 Your Requests</h2>
+                    <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '2px' }}>Help or resources you're looking for</p>
+                  </div>
+                  <button onClick={() => { setShowAddRequest(!showAddRequest); setShowAddOffer(false) }} style={{ padding: '10px 24px', borderRadius: '100px', background: '#16a34a', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    {showAddRequest ? '✕ Cancel' : '+ Add Request'}
+                  </button>
+                </div>
+
+                {showAddRequest && (
+                  <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #d1fae5', padding: '28px', marginBottom: '20px' }}>
+                    <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>Add a new request</h3>
+                    <div style={{ marginBottom: '16px' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Category</label>
+                      <select value={requestForm.category} onChange={e => setRequestForm(f => ({ ...f, category: e.target.value }))} style={{ ...inputStyle, border: '1.5px solid #d1fae5', background: '#f0fdf4' }}>
+                        <option value="">Select a category</option>
+                        {categories_seek.map(c => <option key={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Description</label>
+                      <textarea value={requestForm.description} onChange={e => setRequestForm(f => ({ ...f, description: e.target.value }))}
+                        style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' as const, border: '1.5px solid #d1fae5', background: '#f0fdf4' }}
+                        placeholder="Describe what you need..." />
+                    </div>
+                    <button onClick={addRequest} disabled={saving} style={{ padding: '12px 32px', borderRadius: '100px', background: '#16a34a', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: saving ? 0.6 : 1 }}>
+                      {saving ? 'Saving...' : 'Save Request'}
+                    </button>
+                  </div>
+                )}
+
+                {requests.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '48px', border: '2px dashed #d1fae5', borderRadius: '20px' }}>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📭</div>
+                    <p style={{ color: '#9ca3af', marginBottom: '16px' }}>No requests yet</p>
+                    <button onClick={() => setShowAddRequest(true)} style={{ padding: '10px 24px', borderRadius: '100px', background: '#16a34a', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.875rem' }}>
                       Post Your First Request
                     </button>
                   </div>
                 ) : requests.map(req => (
-                  <div key={req.id} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #d1fae5', padding: '24px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', gap: '16px' }}>
+                  <div key={req.id} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #d1fae5', padding: '24px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', gap: '16px' }}>
                     <div style={{ flex: 1 }}>
                       <span style={{ fontSize: '0.75rem', background: '#f0fdf4', color: '#16a34a', padding: '3px 12px', borderRadius: '100px', fontWeight: 600 }}>{req.category}</span>
                       <p style={{ color: '#555', fontSize: '0.875rem', lineHeight: 1.6, marginTop: '10px' }}>{req.description}</p>
@@ -370,8 +404,11 @@ export default function DashboardPage() {
                       Delete
                     </button>
                   </div>
-                ))
-              )}
+                ))}
+              </div>
+
+              {/* Bottom padding */}
+              <div style={{ height: '60px' }} />
             </>
           )}
         </div>

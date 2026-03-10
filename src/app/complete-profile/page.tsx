@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext'
 const LANGUAGES = ['English', 'Arabic / العربية', 'French', 'Urdu', 'Turkish', 'German', 'Other']
 const VOLUNTEER_CATEGORIES = ['📚 Teaching / Language', '💻 Tech / Coding / AI', '💼 Career / Mentorship', '🫂 Mental Health', '🎨 Creative / Design', '📖 Academic Tutoring', '🌐 Other']
 const SEEKER_CATEGORIES = ['📚 Learn a language', '💻 Learn tech / AI skills', '💼 Career / CV help', '🫂 Mental health support', '📖 Academic tutoring', '🎨 Creative skills', '🌐 Other']
+const GENDERS = ['👨 Male', '👩 Female', '🔒 Prefer not to say']
 
 export default function CompleteProfilePage() {
   const { user } = useAuth()
@@ -16,7 +17,7 @@ export default function CompleteProfilePage() {
   const [error, setError] = useState('')
 
   const [role, setRole] = useState({ is_volunteer: false, is_seeker: false })
-  const [details, setDetails] = useState({ name: user?.user_metadata?.full_name || '', country: '', whatsapp: '', linkedin: '', languages: [] as string[], otherLanguage: '' })
+  const [details, setDetails] = useState({ name: user?.user_metadata?.full_name || '', country: '', whatsapp: '', linkedin: '', languages: [] as string[], otherLanguage: '', gender: '' })
   const [offer, setOffer] = useState({ category: '', description: '' })
   const [need, setNeed] = useState({ category: '', description: '' })
 
@@ -38,24 +39,20 @@ export default function CompleteProfilePage() {
     if (step === 2) {
       if (!details.name.trim()) { setError('Full name is required.'); return false }
       if (!details.country.trim()) { setError('Country is required.'); return false }
+      if (!details.gender) { setError('Please select your gender.'); return false }
       if (!details.whatsapp.trim() && !details.linkedin.trim()) { setError('Please provide WhatsApp or LinkedIn — at least one contact method.'); return false }
       if (details.languages.length === 0) { setError('Please select at least one language.'); return false }
     }
     if (step === 3) {
-      if (role.is_volunteer && !role.is_seeker) {
+      if (role.is_volunteer) {
         if (!offer.category) { setError('Please select a category.'); return false }
         if (!offer.description.trim()) { setError('Please describe what you can offer.'); return false }
-      } else if (role.is_seeker && !role.is_volunteer) {
+      } else {
         if (!need.category) { setError('Please select a category.'); return false }
         if (!need.description.trim()) { setError('Please describe what you need.'); return false }
-      } else {
-        // both — step 3 is volunteer offer
-        if (!offer.category) { setError('Please select a category for your offer.'); return false }
-        if (!offer.description.trim()) { setError('Please describe what you can offer.'); return false }
       }
     }
     if (step === 4) {
-      // both roles — step 4 is seeker need
       if (!need.category) { setError('Please select a category for your need.'); return false }
       if (!need.description.trim()) { setError('Please describe what you need.'); return false }
     }
@@ -89,6 +86,7 @@ export default function CompleteProfilePage() {
       whatsapp_number: details.whatsapp.trim(),
       linkedin: details.linkedin.trim(),
       languages: finalLanguages,
+      gender: details.gender,
     })
     if (profileErr) { setError(profileErr.message); setLoading(false); return }
 
@@ -102,25 +100,22 @@ export default function CompleteProfilePage() {
     router.push('/dashboard')
   }
 
-  const stepTitles = ['Your Role', 'Your Details', role.is_volunteer && !role.is_seeker ? 'Your Offer' : role.is_seeker && !role.is_volunteer ? 'Your Need' : 'Your Offer', 'Your Need']
+  const stepTitles = ['Your Role', 'Your Details', role.is_volunteer ? 'Your Offer' : 'Your Need', 'Your Need']
   const currentTitle = stepTitles[step - 1]
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', padding: '48px 24px', fontFamily: 'inherit' }}>
       <div style={{ maxWidth: '560px', margin: '0 auto' }}>
 
-        {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <h1 className="font-playfair" style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '8px' }}>Complete Your Profile</h1>
           <p style={{ color: '#9ca3af', fontSize: '0.9rem' }}>Step {step} of {totalSteps} — {currentTitle}</p>
         </div>
 
-        {/* Progress bar */}
         <div style={{ width: '100%', height: '6px', background: '#e5e7eb', borderRadius: '100px', marginBottom: '32px' }}>
           <div style={{ width: `${(step / totalSteps) * 100}%`, height: '100%', background: '#d97706', borderRadius: '100px', transition: 'width 0.3s' }} />
         </div>
 
-        {/* Error */}
         {error && (
           <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 12, padding: '14px 16px', color: '#dc2626', marginBottom: '20px', fontSize: '0.9rem' }}>
             ⚠️ {error}
@@ -163,6 +158,18 @@ export default function CompleteProfilePage() {
               <input style={inputStyle} value={details.country} onChange={e => setDetails(d => ({ ...d, country: e.target.value }))} placeholder="Where are you based?" />
             </div>
             <div>
+              <label style={labelStyle}>Gender {req}</label>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                {GENDERS.map(g => (
+                  <button key={g} type="button" onClick={() => setDetails(d => ({ ...d, gender: g }))}
+                    style={{ padding: '10px 20px', borderRadius: '100px', fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit',
+                      border: details.gender === g ? '2px solid #d97706' : '2px solid #e5e7eb',
+                      background: details.gender === g ? '#d97706' : '#fff',
+                      color: details.gender === g ? '#fff' : '#374151', transition: 'all 0.2s' }}>{g}</button>
+                ))}
+              </div>
+            </div>
+            <div>
               <label style={labelStyle}>WhatsApp {req} <span style={{ fontWeight: 400, color: '#9ca3af' }}>(or provide LinkedIn)</span></label>
               <input style={inputStyle} value={details.whatsapp} onChange={e => setDetails(d => ({ ...d, whatsapp: e.target.value }))} placeholder="+1234567890" />
             </div>
@@ -189,13 +196,13 @@ export default function CompleteProfilePage() {
           </div>
         )}
 
-        {/* Step 3 — Volunteer offer OR Seeker need OR (both) Volunteer offer */}
+        {/* Step 3 — Offer or Need */}
         {step === 3 && (
           <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #fde68a', padding: '28px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {(role.is_volunteer) ? (
+            {role.is_volunteer ? (
               <>
-                <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '4px' }}>🙌 What can you offer? {req}</div>
-                <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0' }}>Describe the skill or support you want to volunteer.</p>
+                <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>🙌 What can you offer? {req}</div>
+                <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: 0 }}>Describe the skill or support you want to volunteer.</p>
                 <div>
                   <label style={labelStyle}>Category {req}</label>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -213,13 +220,13 @@ export default function CompleteProfilePage() {
                   <label style={labelStyle}>Description {req}</label>
                   <textarea value={offer.description} onChange={e => setOffer(o => ({ ...o, description: e.target.value }))}
                     style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }}
-                    placeholder="e.g. I can teach basic English conversation, help with CV writing, or mentor in web development..." />
+                    placeholder="e.g. I can teach basic English conversation, help with CV writing..." />
                 </div>
               </>
             ) : (
               <>
-                <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '4px' }}>🌟 What do you need? {req}</div>
-                <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0' }}>Tell volunteers what kind of support would help you most.</p>
+                <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>🌟 What do you need? {req}</div>
+                <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: 0 }}>Tell volunteers what kind of support would help you most.</p>
                 <div>
                   <label style={labelStyle}>Category {req}</label>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -237,18 +244,18 @@ export default function CompleteProfilePage() {
                   <label style={labelStyle}>Description {req}</label>
                   <textarea value={need.description} onChange={e => setNeed(n => ({ ...n, description: e.target.value }))}
                     style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }}
-                    placeholder="e.g. I want to improve my English speaking skills to find better job opportunities..." />
+                    placeholder="e.g. I want to improve my English speaking skills..." />
                 </div>
               </>
             )}
           </div>
         )}
 
-        {/* Step 4 — only for both roles: Seeker need */}
+        {/* Step 4 — both roles: seeker need */}
         {step === 4 && (
           <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #d1fae5', padding: '28px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '4px' }}>🌟 What do you need? {req}</div>
-            <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0' }}>Tell volunteers what kind of support would help you most.</p>
+            <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>🌟 What do you need? {req}</div>
+            <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: 0 }}>Tell volunteers what kind of support would help you most.</p>
             <div>
               <label style={labelStyle}>Category {req}</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -271,7 +278,7 @@ export default function CompleteProfilePage() {
           </div>
         )}
 
-        {/* Navigation buttons */}
+        {/* Navigation */}
         <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
           {step > 1 && (
             <button onClick={() => { setError(''); setStep(s => s - 1) }}

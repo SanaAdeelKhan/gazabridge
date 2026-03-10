@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { sendWelcomeMessageIfNew } from '@/components/sendWelcomeMessage'
 import MatchSection from '@/components/MatchSection'
 
-type Profile = { name: string; role: string; country: string; languages: string[]; linkedin?: string; whatsapp_number?: string; whatsapp_group?: string; english_level?: string }
+type Profile = { name: string; role: string; country: string; languages: string[]; linkedin?: string; whatsapp_number?: string; whatsapp_group?: string; english_level?: string; gender?: string }
 type Offer = { id: string; category: string; description: string; availability: string }
 type Request = { id: string; category: string; description: string }
 
@@ -25,7 +25,7 @@ export default function DashboardPage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [showEditProfile, setShowEditProfile] = useState(false)
   const [form, setForm] = useState({ category: '', description: '', availability: '' })
-  const [editForm, setEditForm] = useState({ name: '', country: '', linkedin: '', whatsapp_number: '', whatsapp_group: '', languages: [] as string[] })
+  const [editForm, setEditForm] = useState({ name: '', country: '', linkedin: '', whatsapp_number: '', whatsapp_group: '', languages: [] as string[], gender: '' })
   const [saving, setSaving] = useState(false)
   const [savingProfile, setSavingProfile] = useState(false)
   const [success, setSuccess] = useState('')
@@ -50,7 +50,7 @@ export default function DashboardPage() {
     const { data: prof } = await supabase.from('profiles').select('*').eq('id', user!.id).single()
     if (prof) {
       setProfile(prof)
-      setEditForm({ name: prof.name || '', country: prof.country || '', linkedin: prof.linkedin || '', whatsapp_number: prof.whatsapp_number || '', whatsapp_group: prof.whatsapp_group || '', languages: prof.languages || [] })
+      setEditForm({ name: prof.name || '', country: prof.country || '', linkedin: prof.linkedin || '', whatsapp_number: prof.whatsapp_number || '', whatsapp_group: prof.whatsapp_group || '', languages: prof.languages || [], gender: prof.gender || '' })
     }
     if (prof?.role === 'volunteer') {
       const { data } = await supabase.from('offers').select('*').eq('user_id', user!.id).order('created_at', { ascending: false })
@@ -71,6 +71,7 @@ export default function DashboardPage() {
       whatsapp_number: editForm.whatsapp_number,
       whatsapp_group: editForm.whatsapp_group,
       languages: editForm.languages,
+      gender: editForm.gender,
     }).eq('id', user!.id)
     if (!error) {
       setSuccess('Profile updated!')
@@ -151,6 +152,7 @@ export default function DashboardPage() {
                       {profile?.role === 'volunteer' ? '🙌 Volunteer' : '🌟 Member'}
                     </span>
                     {profile?.country && <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>📍 {profile.country}</span>}
+                    {profile?.gender && <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{profile.gender}</span>}
                     {profile?.whatsapp_number && <a href={`https://wa.me/${profile.whatsapp_number.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.75rem", color: "#25d366", fontWeight: 600, textDecoration: "none" }}>💚 WhatsApp</a>}
                     {profile?.whatsapp_group && <a href={profile.whatsapp_group} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.75rem", color: "#25d366", fontWeight: 600, textDecoration: "none" }}>👥 WhatsApp Group</a>}
                   </div>
@@ -212,6 +214,18 @@ export default function DashboardPage() {
                     <input value={editForm.whatsapp_group} onChange={e => setEditForm(f => ({ ...f, whatsapp_group: e.target.value }))} style={inputStyle} placeholder="https://chat.whatsapp.com/..." />
                   </div>
                   <div style={{ marginBottom: '20px' }}>
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '8px' }}>Gender</label>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {['👨 Male', '👩 Female', '🔒 Prefer not to say'].map(g => (
+                          <button key={g} type="button" onClick={() => setEditForm(f => ({ ...f, gender: g }))}
+                            style={{ padding: '8px 18px', borderRadius: '100px', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit',
+                              border: editForm.gender === g ? '2px solid #d97706' : '2px solid #e5e7eb',
+                              background: editForm.gender === g ? '#d97706' : '#fff',
+                              color: editForm.gender === g ? '#fff' : '#374151' }}>{g}</button>
+                        ))}
+                      </div>
+                    </div>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '10px' }}>Languages</label>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                       {all_langs.map(l => (

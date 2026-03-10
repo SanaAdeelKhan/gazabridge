@@ -10,7 +10,7 @@ type Request = {
   category: string
   description: string
   created_at: string
-  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string; whatsapp?: string; is_vetted?: boolean; is_admin?: boolean; english_level?: string }
+  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string; whatsapp?: string; is_vetted?: boolean; is_admin?: boolean; english_level?: string; gender?: string }
 }
 
 type Profile = { role: string }
@@ -28,7 +28,7 @@ export default function NeedsPage() {
   const [myProfile, setMyProfile] = useState<Profile | null>(null)
 
   useEffect(() => {
-    supabase.from('requests').select('*, profiles(id, name, country, languages, linkedin, whatsapp, is_vetted, is_admin, english_level)')
+    supabase.from('requests').select('*, profiles(id, name, country, languages, linkedin, whatsapp, is_vetted, is_admin, english_level, gender)')
       .order('created_at', { ascending: false })
       .then(({ data }) => { if (data) { setRequests(data as any); setFiltered(data as any) } setLoading(false) })
   }, [])

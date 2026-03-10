@@ -7,7 +7,7 @@ export default function GoogleSignInButton({ label = 'Continue with Google' }: P
   const handleGoogleSignIn = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback` }
+      options: { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`, queryParams: { prompt: 'select_account' } }
     })
   }
 

@@ -11,7 +11,7 @@ type Offer = {
   category: string
   description: string
   availability: string
-  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string; whatsapp_number?: string; whatsapp_group?: string; is_admin?: boolean }
+  profiles: { id: string; name: string; country: string; languages: string[]; linkedin?: string; whatsapp_number?: string; whatsapp_group?: string; is_admin?: boolean; gender?: string }
 }
 
 const categories = ['All', '📚 Teaching / Language', '💻 Tech / Coding / AI', '💼 Career / Mentorship', '🫂 Mental Health', '🎨 Creative / Design', '📖 Academic Tutoring']
@@ -26,7 +26,7 @@ export default function VolunteersPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.from('offers').select('*, profiles(id, name, country, languages, linkedin, whatsapp_number, whatsapp_group, is_admin)')
+    supabase.from('offers').select('*, profiles(id, name, country, languages, linkedin, whatsapp_number, whatsapp_group, is_admin, gender)')
       .order('created_at', { ascending: false })
       .then(({ data }) => { if (data) { setOffers(data as any); setFiltered(data as any) } setLoading(false) })
   }, [])
@@ -109,6 +109,7 @@ export default function VolunteersPage() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#1a1a2e' }}>{offer.profiles?.name}</div>{offer.profiles?.is_admin && <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '2px 8px', borderRadius: '100px', background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>⚙️ Admin</span>}</div>
                       <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{offer.profiles?.country}</div>
+                      {offer.profiles?.gender && <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{offer.profiles.gender}</div>}
                     </div>
                   </Link>
                 </div>

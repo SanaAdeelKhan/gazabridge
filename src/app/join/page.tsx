@@ -1,9 +1,9 @@
 'use client'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import GoogleSignInButton from '@/components/GoogleSignInButton'
 
-export default function JoinPage() {
+function JoinContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const role = searchParams.get('role') as 'volunteer' | 'seeker' | null
@@ -103,6 +103,14 @@ export default function JoinPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function JoinPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>}>
+      <JoinContent />
+    </Suspense>
   )
 }
 

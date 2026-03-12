@@ -87,13 +87,13 @@ export default function AdminPage() {
 
   async function toggleVetted(profileId: string, current: boolean) {
     const { error: vetError } = await supabase.from("profiles").update({ is_vetted: !current }).eq("id", profileId)
-    if (vetError) setError('Failed to update vetted status')
+    if (vetError) console.error('Failed to update vetted status', vetError)
     fetchProfiles()
   }
 
   async function toggleAdmin(profileId: string, current: boolean) {
     const { error: adminError } = await supabase.from('profiles').update({ is_admin: !current }).eq('id', profileId)
-    if (adminError) setError('Failed to update admin status')
+    if (adminError) console.error('Failed to update admin status', adminError)
     fetchProfiles()
   }
 

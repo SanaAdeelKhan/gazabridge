@@ -122,16 +122,13 @@ export default function QuizPage() {
   const stageLabel = { basic: 'Stage 1 of 3 — Basic', medium: 'Stage 2 of 3 — Intermediate', advanced: 'Stage 3 of 3 — Advanced' }
   const stageColor = { basic: '#d97706', medium: '#1d4ed8', advanced: '#16a34a' }
 
-  if (!user) return (
-    <>
-      <Navbar />
-      <div style={{ textAlign: 'center', padding: '80px 24px' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🔒</div>
-        <h3 style={{ fontSize: '1.5rem', marginBottom: '12px' }}>Sign in to take the quiz</h3>
-        <a href="/login" style={{ color: '#d97706' }}>Go to login →</a>
-      </div>
-    </>
-  )
+  useEffect(() => {
+    if (!user) {
+      router.push('/login')
+    }
+  }, [user, router])
+
+  if (!user) return null
 
   return (
     <>
@@ -141,7 +138,7 @@ export default function QuizPage() {
         {stage === 'intro' && (
           <div style={{ background: '#fff', borderRadius: '24px', border: '1px solid #fde68a', padding: '48px', textAlign: 'center' }}>
             <div style={{ fontSize: '4rem', marginBottom: '16px' }}>📝</div>
-            <h1 className="font-playfair" style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '12px' }}>English Level Quiz</h1>
+            <h1 className="font-cormorant" style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '12px' }}>English Level Quiz</h1>
             <p style={{ color: '#6b7280', lineHeight: 1.7, marginBottom: '8px' }}>This quiz will assess your English level and help volunteers match you better.</p>
             <p style={{ color: '#6b7280', lineHeight: 1.7, marginBottom: '32px', fontSize: '0.9rem' }}>The quiz is <strong>adaptive</strong> — it starts with basic questions. If you do well, it continues to harder stages. It takes about 5–10 minutes.</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px', textAlign: 'left', background: '#fffbeb', borderRadius: '16px', padding: '20px' }}>
@@ -208,7 +205,7 @@ export default function QuizPage() {
         {stage === 'result' && result && (
           <div style={{ background: '#fff', borderRadius: '24px', border: '1px solid #fde68a', padding: '48px', textAlign: 'center' }}>
             <div style={{ fontSize: '4rem', marginBottom: '16px' }}>{resultEmoji[result]}</div>
-            <h1 className="font-playfair" style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '16px' }}>Your English Level</h1>
+            <h1 className="font-cormorant" style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '16px' }}>Your English Level</h1>
             <div style={{ display: 'inline-block', padding: '12px 40px', borderRadius: '100px', background: resultColors[result].bg, color: resultColors[result].color, border: `2px solid ${resultColors[result].border}`, fontWeight: 700, fontSize: '1.3rem', marginBottom: '24px' }}>
               {result}
             </div>

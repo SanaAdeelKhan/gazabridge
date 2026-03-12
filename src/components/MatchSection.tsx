@@ -179,7 +179,7 @@ export default function MatchSection({
     return (
       <div style={{ marginBottom: '32px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-          <h2 className="font-playfair" style={{ fontSize: '1.5rem', fontWeight: 700 }}>🎯 Seekers Who Need You</h2>
+          <h2 className="font-cormorant" style={{ fontSize: '1.5rem', fontWeight: 700 }}>🎯 Seekers Who Need You</h2>
           <span style={{ fontSize: '0.8rem', background: '#f0fdf4', color: '#16a34a', padding: '4px 12px', borderRadius: '100px', fontWeight: 600 }}>{matchedSeekers.length} match{matchedSeekers.length !== 1 ? 'es' : ''}</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
@@ -228,7 +228,7 @@ export default function MatchSection({
   return (
     <div style={{ marginBottom: '32px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <h2 className="font-playfair" style={{ fontSize: '1.5rem', fontWeight: 700 }}>✨ Your Best Matches</h2>
+        <h2 className="font-cormorant" style={{ fontSize: '1.5rem', fontWeight: 700 }}>✨ Your Best Matches</h2>
         <span style={{ fontSize: '0.8rem', background: '#fffbeb', color: '#d97706', padding: '4px 12px', borderRadius: '100px', fontWeight: 600 }}>Top {matchedVolunteers.length}</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>

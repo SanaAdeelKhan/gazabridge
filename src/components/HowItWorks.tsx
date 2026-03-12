@@ -84,13 +84,13 @@ export default function HowItWorks() {
 
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-        <h1 className="font-playfair" style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '16px' }}>{t.title}</h1>
+        <h1 className="font-cormorant" style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '16px' }}>{t.title}</h1>
         <p style={{ color: '#6b7280', fontSize: '1.05rem', maxWidth: '560px', margin: '0 auto', lineHeight: 1.7 }}>{t.subtitle}</p>
       </div>
 
       {/* For Volunteers */}
       <div style={{ background: '#fffbeb', borderRadius: '24px', border: '1px solid #fde68a', padding: '36px', marginBottom: '24px' }}>
-        <h2 className="font-playfair" style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '24px', color: '#b45309' }}>{t.volTitle}</h2>
+        <h2 className="font-cormorant" style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '24px', color: '#b45309' }}>{t.volTitle}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {volSteps.map((step, i) => (
             <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', flexDirection: ar ? 'row-reverse' : 'row' }}>
@@ -105,7 +105,7 @@ export default function HowItWorks() {
 
       {/* For Gaza Residents */}
       <div style={{ background: '#f0fdf4', borderRadius: '24px', border: '1px solid #bbf7d0', padding: '36px', marginBottom: '24px' }}>
-        <h2 className="font-playfair" style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '24px', color: '#16a34a' }}>{t.gazaTitle}</h2>
+        <h2 className="font-cormorant" style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '24px', color: '#16a34a' }}>{t.gazaTitle}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {gazaSteps.map((step, i) => (
             <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', flexDirection: ar ? 'row-reverse' : 'row' }}>
@@ -120,7 +120,7 @@ export default function HowItWorks() {
 
       {/* FAQ */}
       <div style={{ background: '#fff', borderRadius: '24px', border: '1px solid #e5e7eb', padding: '36px', marginBottom: '32px' }}>
-        <h2 className="font-playfair" style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '24px' }}>{t.faqTitle}</h2>
+        <h2 className="font-cormorant" style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '24px' }}>{t.faqTitle}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {faqs.map((faq, i) => (
             <div key={i} style={{ borderBottom: '1px solid #f3f4f6', paddingBottom: '20px' }}>
@@ -135,12 +135,9 @@ export default function HowItWorks() {
 
       {/* CTA */}
       <div style={{ textAlign: 'center', padding: '40px 24px', background: 'linear-gradient(135deg, #fffbeb, #fef3c7)', borderRadius: '24px' }}>
-        <h2 className="font-playfair" style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '24px' }}>{t.ctaTitle}</h2>
+        <h2 className="font-cormorant" style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '24px' }}>{t.ctaTitle}</h2>
         <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link href="/join?role=volunteer" style={{ padding: '14px 32px', borderRadius: '100px', background: '#d97706', color: '#fff', fontWeight: 700, textDecoration: 'none', fontSize: '1rem' }}>
-            {t.joinVol}
-          </Link>
-          <Link href="/join?role=seeker" style={{ padding: '14px 32px', borderRadius: '100px', background: '#16a34a', color: '#fff', fontWeight: 700, textDecoration: 'none', fontSize: '1rem' }}>
+          <Link href="/help" style={{ padding: '14px 32px', borderRadius: '100px', background: '#16a34a', color: '#fff', fontWeight: 700, textDecoration: 'none', fontSize: '1rem' }}>
             {t.getHelp}
           </Link>
         </div>

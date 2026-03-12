@@ -11,7 +11,7 @@ type Message = { id: string; sender_id: string; content: string; created_at: str
 type Conversation = { id: string; other: Profile; lastMsg: string; unread: number }
 
 function MessagesContent() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const searchParams = useSearchParams()
   const router = useRouter()
   const toId = searchParams.get('to')
@@ -148,17 +148,17 @@ function MessagesContent() {
     return name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '??'
   }
 
-  if (!user) return (
-    <div style={{ textAlign: 'center', padding: '80px 24px' }}>
-      <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🔒</div>
-      <h3 className="font-playfair" style={{ fontSize: '1.5rem', marginBottom: '12px' }}>Sign in to view messages</h3>
-      <a href="/login" style={{ color: '#d97706' }}>Go to login →</a>
-    </div>
-  )
+  useEffect(() => {
+    if (!user && !authLoading) {
+      router.push('/login')
+    }
+  }, [user, authLoading, router])
+
+  if (!user) return null
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px 24px', height: 'calc(100vh - 120px)' }}>
-      <h1 className="font-playfair" style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '24px' }}>Messages</h1>
+      <h1 className="font-cormorant" style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '24px' }}>Messages</h1>
 
       <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', height: 'calc(100% - 60px)', border: '1px solid #fde68a', borderRadius: '20px', overflow: 'hidden', position: 'relative' as const }}>
 
@@ -217,7 +217,7 @@ function MessagesContent() {
               </div>
 
               {/* Messages */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="messages-scroll" style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px', scrollbarWidth: 'thin' as const, scrollbarColor: 'rgba(192,122,26,0.4) transparent' }}>
                 {messages.length === 0 ? (
                   <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.875rem', padding: '40px 0' }}>
                     No messages yet — say hello! 👋
@@ -252,7 +252,7 @@ function MessagesContent() {
                   onKeyDown={e => e.key === 'Enter' && sendMessage()}
                   style={{ flex: 1, padding: '12px 20px', borderRadius: '100px', border: '1.5px solid #fde68a', fontSize: '0.9rem', outline: 'none', fontFamily: 'inherit', background: '#fffbeb' }}
                   placeholder="Type a message… / اكتب رسالة…" />
-                <button onClick={sendMessage} disabled={sending || !newMsg.trim()}
+                <button onClick={sendMessage} disabled={sending || !newMsg.trim()} aria-label="Send message"
                   style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#d97706', border: 'none', cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: sending || !newMsg.trim() ? 0.5 : 1 }}>
                   <Send size={16} />
                 </button>
@@ -268,6 +268,7 @@ function MessagesContent() {
 export default function MessagesPage() {
   return (
     <>
+      <div aria-hidden="true" style={{position: 'fixed',inset: 0,zIndex: -1,pointerEvents: 'none',backgroundImage: 'radial-gradient(ellipse 70% 50% at 15% 20%, rgba(92,107,46,0.09) 0%, transparent 60%), radial-gradient(ellipse 60% 70% at 85% 80%, rgba(192,122,26,0.08) 0%, transparent 60%)',animation: 'shaderDrift 14s ease-in-out infinite alternate',backgroundSize: '200% 200%',}} />
       <Navbar />
       <Suspense fallback={<div style={{ textAlign: 'center', padding: '80px', color: '#9ca3af' }}>Loading...</div>}>
         <MessagesContent />

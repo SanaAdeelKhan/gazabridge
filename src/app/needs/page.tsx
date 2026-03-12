@@ -63,10 +63,11 @@ export default function NeedsPage() {
 
   return (
     <>
+      <div aria-hidden="true" style={{position: 'fixed',inset: 0,zIndex: -1,pointerEvents: 'none',backgroundImage: 'radial-gradient(ellipse 70% 50% at 15% 20%, rgba(92,107,46,0.09) 0%, transparent 60%), radial-gradient(ellipse 60% 70% at 85% 80%, rgba(192,122,26,0.08) 0%, transparent 60%)',animation: 'shaderDrift 14s ease-in-out infinite alternate',backgroundSize: '200% 200%',}} />
       <Navbar />
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '48px 24px' }}>
         <div style={{ marginBottom: '40px' }}>
-          <h1 className="font-playfair" style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '8px' }}>People Seeking Help</h1>
+          <h1 className="font-cormorant" style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '8px' }}>People Seeking Help</h1>
           <p style={{ color: '#9ca3af' }}>Browse requests from Gaza — reach out and offer your support</p>
           <p className="font-arabic" style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '4px', direction: 'rtl' }}>طلبات المساعدة من أهل غزة</p>
         </div>
@@ -95,7 +96,7 @@ export default function NeedsPage() {
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 24px' }}>
             <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🌟</div>
-            <h3 className="font-playfair" style={{ fontSize: '1.5rem', marginBottom: '8px' }}>No requests yet</h3>
+            <h3 className="font-cormorant" style={{ fontSize: '1.5rem', marginBottom: '8px' }}>No requests yet</h3>
             <p style={{ color: '#9ca3af', marginBottom: '24px' }}>Be the first to post a request!</p>
             <a href="/join?role=seeker" style={{ padding: '12px 28px', borderRadius: '100px', background: '#4A5C3A', color: '#fff', fontWeight: 600, textDecoration: 'none' }}>Post a Request</a>
           </div>

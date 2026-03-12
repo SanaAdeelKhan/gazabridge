@@ -1,15 +1,25 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Menu, X } from 'lucide-react'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
+  const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => {
     if (user) {
@@ -79,69 +89,248 @@ export default function Navbar() {
     </span>
   ) : null
 
-  return (
-    <nav className="sticky top-0 z-50 border-b border-amber-100 bg-[#FDF8F0]/90 backdrop-blur-md">
-      <div className="max-w-6xl mx-auto px-6 py-2 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/"><img src="/logo.png" alt="GazaBridge" style={{ height: "180px", width: "auto", objectFit: "contain", marginTop: "-16px", marginBottom: "-16px" }} /></Link>
+  const navLinkStyle = (href: string) => ({
+    fontFamily: 'inherit',
+    fontSize: '15px',
+    fontWeight: pathname === href ? 600 : 500,
+    color: pathname === href ? '#C07A1A' : '#3D3D2E',
+    padding: '6px 14px',
+    borderRadius: '100px',
+    textDecoration: 'none',
+    transition: 'all 0.2s',
+    display: 'inline-flex',
+    alignItems: 'center',
+    background: pathname === href ? 'rgba(192,122,26,0.09)' : 'transparent',
+  })
 
-        {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-2">
-          <Link href="/how-it-works" className="px-4 py-2 rounded-full text-base font-medium hover:bg-amber-50 transition">How it Works</Link>
-          {user && <Link href="/volunteers" className="px-4 py-2 rounded-full text-base font-medium hover:bg-amber-50 transition">Volunteers</Link>}
-          {user && <Link href="/needs" className="px-4 py-2 rounded-full text-base font-medium hover:bg-amber-50 transition">Needs</Link>}
+  const dashboardLinkStyle = {
+    fontFamily: 'inherit',
+    fontSize: '15px',
+    fontWeight: pathname === '/dashboard' ? 600 : 500,
+    color: pathname === '/dashboard' ? '#C07A1A' : '#3D3D2E',
+    padding: '6px 14px',
+    borderRadius: '100px',
+    textDecoration: 'none',
+    transition: 'all 0.2s',
+    display: 'inline-flex',
+    alignItems: 'center',
+    background: 'rgba(192,122,26,0.09)',
+  }
+
+  return (
+    <nav style={{
+      position: 'sticky',
+      top: 0,
+      zIndex: 50,
+      background: 'rgba(250,246,238,0.85)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      borderBottom: '1px solid rgba(192,122,26,0.15)',
+      boxShadow: '0 2px 20px rgba(92,107,46,0.06)',
+    }}>
+      <div style={{
+        maxWidth: '1100px',
+        margin: '0 auto',
+        padding: '0 24px',
+        height: '64px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        {/* Logo */}
+        <Link href="/">
+          <img src="/logo.png" alt="GazaBridge" style={{ height: "52px", width: "auto", objectFit: "contain", marginTop: "0", marginBottom: "0" }} />
+        </Link>
+
+        {/* Desktop nav - CENTER */}
+        {isDesktop && (
+          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+          <Link href="/how-it-works" style={navLinkStyle('/how-it-works')}
+            onMouseEnter={(e) => {
+              if (pathname !== '/how-it-works') {
+                e.currentTarget.style.background = 'rgba(92,107,46,0.07)'
+                e.currentTarget.style.color = '#1A1A14'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (pathname !== '/how-it-works') {
+                e.currentTarget.style.background = 'transparent'
+                e.currentTarget.style.color = '#3D3D2E'
+              }
+            }}>
+            How it Works
+          </Link>
           {user && (
-            <Link href="/messages" className="px-4 py-2 rounded-full text-base font-medium hover:bg-amber-50 transition" style={{ display: "inline-flex", alignItems: "center" }}>
-              Messages{badge}
-            </Link>
-          )}
-          {user ? (
-            <div className="flex items-center gap-2 ml-2">
+            <>
+              <Link href="/volunteers" style={navLinkStyle('/volunteers')}
+                onMouseEnter={(e) => {
+                  if (pathname !== '/volunteers') {
+                    e.currentTarget.style.background = 'rgba(92,107,46,0.07)'
+                    e.currentTarget.style.color = '#1A1A14'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (pathname !== '/volunteers') {
+                    e.currentTarget.style.background = 'transparent'
+                    e.currentTarget.style.color = '#3D3D2E'
+                  }
+                }}>
+                Volunteers
+              </Link>
+              <Link href="/needs" style={navLinkStyle('/needs')}
+                onMouseEnter={(e) => {
+                  if (pathname !== '/needs') {
+                    e.currentTarget.style.background = 'rgba(92,107,46,0.07)'
+                    e.currentTarget.style.color = '#1A1A14'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (pathname !== '/needs') {
+                    e.currentTarget.style.background = 'transparent'
+                    e.currentTarget.style.color = '#3D3D2E'
+                  }
+                }}>
+                Needs
+              </Link>
+              <Link href="/messages" style={navLinkStyle('/messages')}
+                onMouseEnter={(e) => {
+                  if (pathname !== '/messages') {
+                    e.currentTarget.style.background = 'rgba(92,107,46,0.07)'
+                    e.currentTarget.style.color = '#1A1A14'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (pathname !== '/messages') {
+                    e.currentTarget.style.background = 'transparent'
+                    e.currentTarget.style.color = '#3D3D2E'
+                  }
+                }}>
+                Messages{badge}
+              </Link>
               {isAdmin && (
-                <Link href="/admin" className="px-4 py-2 rounded-full text-base font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 transition">
+                <Link href="/admin" style={navLinkStyle('/admin')}
+                  onMouseEnter={(e) => {
+                    if (pathname !== '/admin') {
+                      e.currentTarget.style.background = 'rgba(92,107,46,0.07)'
+                      e.currentTarget.style.color = '#1A1A14'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (pathname !== '/admin') {
+                      e.currentTarget.style.background = 'transparent'
+                      e.currentTarget.style.color = '#3D3D2E'
+                    }
+                  }}>
                   ⚙️ Admin
                 </Link>
               )}
-              <Link href="/dashboard" className="px-4 py-2 rounded-full text-base font-medium bg-amber-50 hover:bg-amber-100 transition">Dashboard</Link>
-              <button onClick={signOut} className="px-4 py-2 rounded-full text-base font-medium border border-amber-200 hover:border-amber-400 transition">Sign Out</button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 ml-2">
-              <Link href="/login" className="px-4 py-2 rounded-full text-base font-medium border border-amber-300 text-amber-700 hover:bg-amber-50 transition">Login</Link>
-              <Link href="/join" className="px-4 py-2 rounded-full text-base font-semibold bg-amber-600 text-white hover:bg-amber-700 transition">Join Free</Link>
-            </div>
+              <Link href="/dashboard" style={dashboardLinkStyle}
+                onMouseEnter={(e) => {
+                  if (pathname !== '/dashboard') {
+                    e.currentTarget.style.color = '#1A1A14'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (pathname !== '/dashboard') {
+                    e.currentTarget.style.color = '#3D3D2E'
+                  }
+                }}>
+                Dashboard
+              </Link>
+            </>
           )}
         </div>
+        )}
+
+        {/* Desktop nav - RIGHT */}
+        {isDesktop && (
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {user ? (
+            <button type="button" onClick={signOut} style={{
+              padding: '8px 20px',
+              borderRadius: '100px',
+              border: '1px solid rgba(192,122,26,0.3)',
+              background: 'transparent',
+              fontSize: '14px',
+              fontWeight: 500,
+              color: '#8A8572',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#C07A1A'
+              e.currentTarget.style.borderColor = 'rgba(192,122,26,0.6)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#8A8572'
+              e.currentTarget.style.borderColor = 'rgba(192,122,26,0.3)'
+            }}>
+              Sign Out
+            </button>
+          ) : (
+            <>
+              <Link href="/login" style={{
+                padding: '8px 20px',
+                borderRadius: '100px',
+                border: '1px solid rgba(192,122,26,0.3)',
+                background: 'transparent',
+                fontSize: '14px',
+                fontWeight: 500,
+                color: '#8A8572',
+                textDecoration: 'none',
+                transition: 'all 0.2s',
+              }}>
+                Login
+              </Link>
+              <Link href="/join" style={{
+                padding: '8px 20px',
+                borderRadius: '100px',
+                background: 'linear-gradient(135deg, #C07A1A, #E09030)',
+                fontSize: '14px',
+                fontWeight: 600,
+                color: '#fff',
+                textDecoration: 'none',
+                transition: 'all 0.2s',
+              }}>
+                Join Free
+              </Link>
+            </>
+          )}
+        </div>
+        )}
 
         {/* Mobile menu button */}
-        <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
+        {!isDesktop && (
+          <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: '#3D3D2E', fontSize: '1.4rem' }} onClick={() => setMenuOpen(!menuOpen)}>
           {menuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
+        )}
       </div>
 
       {/* Mobile menu */}
-      {menuOpen && (
-        <div className="md:hidden px-6 pb-4 flex flex-col gap-2 border-t border-amber-100">
-          <Link href="/how-it-works" className="py-2 text-base font-medium" onClick={() => setMenuOpen(false)}>How it Works</Link>
-          {user && <Link href="/volunteers" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Volunteers</Link>}
-          {user && <Link href="/needs" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Needs</Link>}
+      {menuOpen && !isDesktop && (
+        <div style={{ position: 'absolute', top: '64px', left: 0, right: 0, background: 'rgba(250,246,238,0.97)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(192,122,26,0.15)', padding: '16px 24px 24px', display: 'flex', flexDirection: 'column', gap: '4px', zIndex: 49 }}>
+          <Link href="/how-it-works" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>How it Works</Link>
+          {user && <Link href="/volunteers" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>Volunteers</Link>}
+          {user && <Link href="/needs" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>Needs</Link>}
           {user && (
-            <Link href="/messages" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)} style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <Link href="/messages" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }} onClick={() => setMenuOpen(false)}>
               Messages{badge}
             </Link>
           )}
           {user ? (
             <>
               {isAdmin && (
-                <Link href="/admin" className="py-2 text-sm font-semibold text-amber-700" onClick={() => setMenuOpen(false)}>⚙️ Admin</Link>
+                <Link href="/admin" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>⚙️ Admin</Link>
               )}
-              <Link href="/dashboard" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Dashboard</Link>
-              <button onClick={signOut} className="py-2 text-sm font-medium text-left text-red-500">Sign Out</button>
+              <Link href="/dashboard" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>Dashboard</Link>
+              <button type="button" onClick={signOut} style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}>Sign Out</button>
             </>
           ) : (
             <>
-              <Link href="/login" className="py-2 text-sm font-medium" onClick={() => setMenuOpen(false)}>Login</Link>
-              <Link href="/join" className="py-2 text-sm font-semibold text-amber-600" onClick={() => setMenuOpen(false)}>Join Free</Link>
+              <Link href="/login" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>Login</Link>
+              <Link href="/join" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>Join Free</Link>
             </>
           )}
         </div>

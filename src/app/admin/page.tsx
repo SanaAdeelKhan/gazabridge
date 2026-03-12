@@ -64,7 +64,7 @@ export default function AdminPage() {
           .insert({ volunteer_id: ADMIN_ID, seeker_id: target.id })
           .select('id')
           .single()
-        if (convErr) { console.error('Conv error:', convErr); continue }
+        if (convErr) continue
         convId = newConv?.id
       }
       if (convId) {
@@ -75,7 +75,7 @@ export default function AdminPage() {
           content: `📢 ${broadcast.message}`,
           is_read: false,
         })
-        if (msgErr) { console.error('Msg error:', msgErr); continue }
+        if (msgErr) continue
         sent++
       }
     }
@@ -87,13 +87,13 @@ export default function AdminPage() {
 
   async function toggleVetted(profileId: string, current: boolean) {
     const { error: vetError } = await supabase.from("profiles").update({ is_vetted: !current }).eq("id", profileId)
-    if (vetError) console.error("Vet error:", vetError)
+    if (vetError) setError('Failed to update vetted status')
     fetchProfiles()
   }
 
   async function toggleAdmin(profileId: string, current: boolean) {
     const { error: adminError } = await supabase.from('profiles').update({ is_admin: !current }).eq('id', profileId)
-    if (adminError) console.error('Admin error:', adminError)
+    if (adminError) setError('Failed to update admin status')
     fetchProfiles()
   }
 
@@ -112,7 +112,7 @@ export default function AdminPage() {
       <div style={{ maxWidth: '860px', margin: '0 auto', padding: '48px 24px', fontFamily: 'inherit' }}>
 
         <div style={{ marginBottom: '36px' }}>
-          <h1 className="font-playfair" style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '6px' }}>⚙️ Admin Dashboard</h1>
+          <h1 className="font-cormorant" style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '6px' }}>⚙️ Admin Dashboard</h1>
           <p style={{ color: '#9ca3af' }}>Manage GazaBridge users and send announcements</p>
         </div>
 

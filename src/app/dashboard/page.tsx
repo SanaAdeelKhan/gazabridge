@@ -132,7 +132,7 @@ export default function DashboardPage() {
       <Navbar />
       <div style={{ textAlign: 'center', padding: '80px 24px' }}>
         <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🔒</div>
-        <h3 className="font-playfair" style={{ fontSize: '1.5rem', marginBottom: '12px' }}>Sign in to view your dashboard</h3>
+        <h3 className="font-cormorant" style={{ fontSize: '1.5rem', marginBottom: '12px' }}>Sign in to view your dashboard</h3>
         <Link href="/login" style={{ color: '#d97706' }}>Go to login →</Link>
       </div>
     </>
@@ -140,6 +140,7 @@ export default function DashboardPage() {
 
   return (
     <>
+      <div aria-hidden="true" style={{position: 'fixed',inset: 0,zIndex: -1,pointerEvents: 'none',backgroundImage: 'radial-gradient(ellipse 70% 50% at 15% 20%, rgba(92,107,46,0.09) 0%, transparent 60%), radial-gradient(ellipse 60% 70% at 85% 80%, rgba(192,122,26,0.08) 0%, transparent 60%)',animation: 'shaderDrift 14s ease-in-out infinite alternate',backgroundSize: '200% 200%',}} />
       <Navbar />
       <div style={{ width: '100%', padding: '48px 24px', boxSizing: 'border-box' as const }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -154,7 +155,7 @@ export default function DashboardPage() {
                   {profile?.name?.slice(0, 2).toUpperCase()}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <h1 className="font-playfair" style={{ fontSize: '1.8rem', fontWeight: 700 }}>{profile?.name}</h1>
+                  <h1 className="font-cormorant" style={{ fontSize: '1.8rem', fontWeight: 700 }}>{profile?.name}</h1>
                   <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 600, padding: '3px 12px', borderRadius: '100px', background: profile?.role === 'volunteer' ? '#fffbeb' : '#f0fdf4', color: profile?.role === 'volunteer' ? '#b45309' : '#16a34a' }}>
                       {profile?.role === 'volunteer' ? '🙌 Volunteer' : '🌟 Member'}
@@ -286,7 +287,7 @@ export default function DashboardPage() {
               <div style={{ marginTop: '40px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                   <div>
-                    <h2 className="font-playfair" style={{ fontSize: '1.6rem', fontWeight: 700 }}>🙌 Your Offers</h2>
+                    <h2 className="font-cormorant" style={{ fontSize: '1.6rem', fontWeight: 700 }}>🙌 Your Offers</h2>
                     <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '2px' }}>Skills or time you're offering to others</p>
                   </div>
                   <button onClick={() => { setShowAddOffer(!showAddOffer); setShowAddRequest(false) }} style={{ padding: '10px 24px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -299,7 +300,7 @@ export default function DashboardPage() {
                     <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>Add a new offer</h3>
                     <div style={{ marginBottom: '16px' }}>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Category</label>
-                      <select value={offerForm.category} onChange={e => setOfferForm(f => ({ ...f, category: e.target.value }))} style={{ ...inputStyle, background: '#fff' }}>
+                      <select aria-label="Offer category" value={offerForm.category} onChange={e => setOfferForm(f => ({ ...f, category: e.target.value }))} style={{ ...inputStyle, background: '#fff' }}>
                         <option value="">Select a category</option>
                         {categories_vol.map(c => <option key={c}>{c}</option>)}
                       </select>
@@ -312,7 +313,7 @@ export default function DashboardPage() {
                     </div>
                     <div style={{ marginBottom: '20px' }}>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Availability</label>
-                      <select value={offerForm.availability} onChange={e => setOfferForm(f => ({ ...f, availability: e.target.value }))} style={{ ...inputStyle, background: '#fff' }}>
+                      <select aria-label="Availability hours per week" value={offerForm.availability} onChange={e => setOfferForm(f => ({ ...f, availability: e.target.value }))} style={{ ...inputStyle, background: '#fff' }}>
                         <option value="">Select availability</option>
                         <option>1–2 hours/week</option>
                         <option>3–5 hours/week</option>
@@ -354,7 +355,7 @@ export default function DashboardPage() {
               <div style={{ marginTop: '48px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                   <div>
-                    <h2 className="font-playfair" style={{ fontSize: '1.6rem', fontWeight: 700 }}>🌟 Your Requests</h2>
+                    <h2 className="font-cormorant" style={{ fontSize: '1.6rem', fontWeight: 700 }}>🌟 Your Requests</h2>
                     <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '2px' }}>Help or resources you're looking for</p>
                   </div>
                   <button onClick={() => { setShowAddRequest(!showAddRequest); setShowAddOffer(false) }} style={{ padding: '10px 24px', borderRadius: '100px', background: '#16a34a', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -367,7 +368,7 @@ export default function DashboardPage() {
                     <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>Add a new request</h3>
                     <div style={{ marginBottom: '16px' }}>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Category</label>
-                      <select value={requestForm.category} onChange={e => setRequestForm(f => ({ ...f, category: e.target.value }))} style={{ ...inputStyle, border: '1.5px solid #d1fae5', background: '#f0fdf4' }}>
+                      <select aria-label="Request category" value={requestForm.category} onChange={e => setRequestForm(f => ({ ...f, category: e.target.value }))} style={{ ...inputStyle, border: '1.5px solid #d1fae5', background: '#f0fdf4' }}>
                         <option value="">Select a category</option>
                         {categories_seek.map(c => <option key={c}>{c}</option>)}
                       </select>

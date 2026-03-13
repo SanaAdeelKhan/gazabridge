@@ -26,7 +26,7 @@ It is as simple and as profound as that.
 
 ## How It Works
 
-Someone who wants to volunteer signs up, completes a short profile describing what they can offer, and gets matched with people in Gaza whose needs align with their skills. Someone in Gaza who needs support posts a request, describes what kind of help they are looking for, and connects directly with a matched volunteer. From there, everything happens through the built-in messaging system — real conversations, real help, real impact.
+Someone who wants to volunteer signs up, completes a short profile describing what they can offer, and gets matched with people in Gaza whose needs align with their skills. Someone in Gaza who needs support posts a request, describes what kind of help they are looking for, and connects directly with a matched volunteer. From there, everything happens through the built-in messaging system; real conversations, real help, real impact.
 
 There are no middlemen. No waiting lists. No forms to fill out in triplicate. Just two human beings, brought together by a platform that believes connection is the most powerful form of aid.
 

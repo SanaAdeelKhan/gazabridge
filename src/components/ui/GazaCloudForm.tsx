@@ -67,20 +67,28 @@ export default function GazaCloudForm() {
       <div
         style={{
           position: "relative",
-          width: "280px",
+          width: "100%",
+          maxWidth: "280px",
           height: "160px",
           margin: "0 auto 2rem",
+          overflow: "hidden",
+          textAlign: "center",
         }}
       >
         <img
           src="https://pub-940ccf6255b54fa799a9b01050e6c227.r2.dev/cloud.jpg"
           alt="cloud"
           loading="lazy"
+          decoding="async"
           width="280"
           height="160"
           style={{
-            width: "100%",
-            height: "100%",
+            display: "block",
+            margin: "0 auto",
+            maxWidth: "100%",
+            width: "180px",
+            height: "auto",
+            objectFit: "contain",
             filter: "hue-rotate(200deg) saturate(1.4) brightness(0.95)",
           }}
         />

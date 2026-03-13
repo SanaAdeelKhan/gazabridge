@@ -35,6 +35,8 @@ function JoinContent() {
           <img 
             src="/gazabridge-logo.png?v=2" 
             alt="GazaBridge" 
+            loading="eager"
+            decoding="async"
             style={{ 
               height: '80px', 
               width: 'auto',

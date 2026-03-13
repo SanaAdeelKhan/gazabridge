@@ -62,22 +62,24 @@ export default function HowItWorks() {
   const stepColor = (type: 'vol' | 'gaza') => type === 'vol' ? '#d97706' : '#16a34a'
 
   return (
-    <div style={{ maxWidth: '860px', margin: '0 auto', padding: '48px 24px', fontFamily: 'inherit', direction: ar ? 'rtl' : 'ltr' }}>
+    <div style={{ maxWidth: '860px', margin: '0 auto', padding: '48px 16px', fontFamily: 'inherit', direction: ar ? 'rtl' : 'ltr' }}>
 
       {/* Language toggle */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '32px' }}>
-        <div style={{ display: 'flex', background: '#f3f4f6', borderRadius: '100px', padding: '4px', gap: '4px' }}>
-          <button onClick={() => setLang('en')} style={{
+        <div style={{ display: 'flex', background: '#f3f4f6', borderRadius: '100px', padding: '4px', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button type="button" onClick={() => setLang('en')} style={{
             padding: '8px 20px', borderRadius: '100px', fontFamily: 'inherit', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', border: 'none',
             background: lang === 'en' ? '#d97706' : 'transparent',
             color: lang === 'en' ? '#fff' : '#6b7280',
             transition: 'all 0.2s',
+            minWidth: '100px',
           }}>English</button>
-          <button onClick={() => setLang('ar')} style={{
+          <button type="button" onClick={() => setLang('ar')} style={{
             padding: '8px 20px', borderRadius: '100px', fontFamily: 'inherit', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', border: 'none',
             background: lang === 'ar' ? '#d97706' : 'transparent',
             color: lang === 'ar' ? '#fff' : '#6b7280',
             transition: 'all 0.2s',
+            minWidth: '100px',
           }}>العربية</button>
         </div>
       </div>
@@ -89,7 +91,7 @@ export default function HowItWorks() {
       </div>
 
       {/* For Volunteers */}
-      <div style={{ background: '#fffbeb', borderRadius: '24px', border: '1px solid #fde68a', padding: '36px', marginBottom: '24px' }}>
+      <div style={{ background: '#fffbeb', borderRadius: '24px', border: '1px solid #fde68a', padding: '24px 20px', marginBottom: '24px', margin: '0 16px 24px 16px', boxSizing: 'border-box', maxWidth: '100%', overflowX: 'hidden' }}>
         <h2 className="font-cormorant" style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '24px', color: '#b45309' }}>{t.volTitle}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {volSteps.map((step, i) => (
@@ -97,14 +99,14 @@ export default function HowItWorks() {
               <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: stepColor('vol'), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0 }}>
                 {i + 1}
               </div>
-              <p style={{ margin: 0, fontSize: '0.95rem', color: '#374151', lineHeight: 1.7 }}>{step}</p>
+              <p style={{ margin: 0, fontSize: '0.95rem', color: '#374151', lineHeight: 1.7, direction: ar ? 'rtl' : 'ltr', textAlign: ar ? 'right' : 'left', padding: ar ? '12px 16px' : '0' }}>{step}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* For Gaza Residents */}
-      <div style={{ background: '#f0fdf4', borderRadius: '24px', border: '1px solid #bbf7d0', padding: '36px', marginBottom: '24px' }}>
+      <div style={{ background: '#f0fdf4', borderRadius: '24px', border: '1px solid #bbf7d0', padding: '24px 20px', marginBottom: '24px', margin: '0 16px 24px 16px', boxSizing: 'border-box', maxWidth: '100%', overflowX: 'hidden' }}>
         <h2 className="font-cormorant" style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '24px', color: '#16a34a' }}>{t.gazaTitle}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {gazaSteps.map((step, i) => (
@@ -112,7 +114,7 @@ export default function HowItWorks() {
               <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: stepColor('gaza'), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0 }}>
                 {i + 1}
               </div>
-              <p style={{ margin: 0, fontSize: '0.95rem', color: '#374151', lineHeight: 1.7 }}>{step}</p>
+              <p style={{ margin: 0, fontSize: '0.95rem', color: '#374151', lineHeight: 1.7, direction: ar ? 'rtl' : 'ltr', textAlign: ar ? 'right' : 'left', padding: ar ? '12px 16px' : '0' }}>{step}</p>
             </div>
           ))}
         </div>
@@ -136,8 +138,8 @@ export default function HowItWorks() {
       {/* CTA */}
       <div style={{ textAlign: 'center', padding: '40px 24px', background: 'linear-gradient(135deg, #fffbeb, #fef3c7)', borderRadius: '24px' }}>
         <h2 className="font-cormorant" style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '24px' }}>{t.ctaTitle}</h2>
-        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link href="/help" style={{ padding: '14px 32px', borderRadius: '100px', background: '#16a34a', color: '#fff', fontWeight: 700, textDecoration: 'none', fontSize: '1rem' }}>
+        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', padding: '0 24px', marginTop: '24px' }}>
+          <Link href="/help" style={{ padding: '14px 32px', borderRadius: '100px', background: '#16a34a', color: '#fff', fontWeight: 700, textDecoration: 'none', fontSize: '1rem', minWidth: '160px', textAlign: 'center' }}>
             {t.getHelp}
           </Link>
         </div>

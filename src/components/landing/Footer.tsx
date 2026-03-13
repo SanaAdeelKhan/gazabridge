@@ -26,6 +26,8 @@ export default function Footer() {
               <img 
                 src="/gazabridge-logo.png?v=2" 
                 alt="GazaBridge" 
+                loading="lazy"
+                decoding="async"
                 width="224"
                 height="114"
                 style={{ 

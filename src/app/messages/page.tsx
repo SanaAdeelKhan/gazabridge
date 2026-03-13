@@ -25,7 +25,16 @@ function MessagesContent() {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [mobileView, setMobileView] = useState<'list' | 'chat'>('list')
+  const [isDesktop, setIsDesktop] = useState(false)
+  const [showChat, setShowChat] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => { if (user) fetchConversations() }, [user])
 
@@ -108,7 +117,7 @@ function MessagesContent() {
     if (convoId) {
       const convo: Conversation = { id: convoId, other: profile, lastMsg: '', unread: 0 }
       setActiveConvo(convo)
-      setMobileView('chat')
+      setShowChat(true)
       fetchConversations()
     }
   }
@@ -160,10 +169,11 @@ function MessagesContent() {
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px 24px', height: 'calc(100vh - 120px)' }}>
       <h1 className="font-cormorant" style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '24px' }}>Messages</h1>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', height: 'calc(100% - 60px)', border: '1px solid #fde68a', borderRadius: '20px', overflow: 'hidden', position: 'relative' as const }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? '300px 1fr' : '1fr', height: 'calc(100% - 60px)', border: '1px solid #fde68a', borderRadius: '20px', overflow: 'hidden', position: 'relative' as const }}>
 
         {/* Sidebar */}
-        <div style={{ borderRight: '1px solid #fde68a', display: 'flex', flexDirection: 'column', background: '#fffbeb', height: '100%', overflow: 'hidden' }}>
+        {(isDesktop || !showChat) && (
+        <div style={{ borderRight: isDesktop ? '1px solid #fde68a' : 'none', display: 'flex', flexDirection: 'column', background: '#fffbeb', height: '100%', overflow: 'hidden' }}>
           <div style={{ padding: '20px', borderBottom: '1px solid #fde68a', fontWeight: 700, fontSize: '0.95rem' }}>
             Conversations ({conversations.length})
           </div>
@@ -177,7 +187,7 @@ function MessagesContent() {
                 <a href="/volunteers" style={{ color: '#d97706' }}>Browse volunteers</a> to start one.
               </div>
             ) : conversations.map(c => (
-              <div key={c.id} onClick={() => { setActiveConvo(c); setMobileView('chat') }}
+              <div key={c.id} onClick={() => { setActiveConvo(c); setShowChat(true) }}
                 style={{
                   padding: '16px 20px', borderBottom: '1px solid #fef3c7', cursor: 'pointer',
                   background: activeConvo?.id === c.id ? '#fef3c7' : 'transparent',
@@ -194,9 +204,11 @@ function MessagesContent() {
             ))}
           </div>
         </div>
+        )}
 
         {/* Chat area */}
-        <div style={{ display: 'flex', flexDirection: 'column', background: '#fff' }}>
+        {(isDesktop || showChat) && (
+        <div style={{ display: 'flex', flexDirection: 'column', background: '#fff', height: isDesktop ? 'auto' : 'calc(100vh - 64px)' }}>
           {!activeConvo ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
               <div style={{ fontSize: '3rem', marginBottom: '12px' }}>💬</div>
@@ -207,6 +219,13 @@ function MessagesContent() {
             <>
               {/* Header */}
               <div style={{ padding: '16px 24px', borderBottom: '1px solid #fde68a', display: 'flex', alignItems: 'center', gap: '14px', background: '#fffbeb' }}>
+                {!isDesktop && (
+                  <button type="button" onClick={() => setShowChat(false)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: '#C07A1A', fontFamily: 'inherit', fontSize: '15px', fontWeight: 600, cursor: 'pointer', padding: '12px 0' }}>
+                    <ArrowLeft size={18} /> Back
+                  </button>
+                )}
+                {isDesktop && (
+                  <>
                 <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.85rem' }}>
                   {getInitials(activeConvo.other?.name)}
                 </div>
@@ -214,6 +233,8 @@ function MessagesContent() {
                   <div style={{ fontWeight: 700 }}>{activeConvo.other?.id === ADMIN_ID ? '🛡️ GazaBridge Admin' : activeConvo.other?.name}</div>
                   <div style={{ fontSize: '0.75rem', color: '#4A5C3A' }}>🟢 {activeConvo.other?.country}</div>
                 </div>
+                  </>
+                )}
               </div>
 
               {/* Messages */}
@@ -260,6 +281,7 @@ function MessagesContent() {
             </>
           )}
         </div>
+        )}
       </div>
     </div>
   )

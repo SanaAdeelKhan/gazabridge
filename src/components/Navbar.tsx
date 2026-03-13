@@ -139,7 +139,7 @@ export default function Navbar() {
       }}>
         {/* Logo */}
         <Link href="/">
-          <img src="/logo.png" alt="GazaBridge" style={{ height: "52px", width: "auto", objectFit: "contain", marginTop: "0", marginBottom: "0" }} />
+          <img src="/logo.png" alt="GazaBridge" loading="eager" decoding="async" style={{ height: "52px", width: "auto", objectFit: "contain", marginTop: "0", marginBottom: "0" }} />
         </Link>
 
         {/* Desktop nav - CENTER */}

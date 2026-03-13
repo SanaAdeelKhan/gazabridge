@@ -5,6 +5,7 @@ import Link from 'next/link'
 export default function NewNavbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -12,6 +13,13 @@ export default function NewNavbar() {
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
   }, [])
 
   return (
@@ -41,6 +49,8 @@ export default function NewNavbar() {
           <img 
             src="/gazabridge-logo.png?v=2" 
             alt="GazaBridge" 
+            loading="eager"
+            decoding="async"
             width="192"
             height="48"
             style={{ 
@@ -52,7 +62,8 @@ export default function NewNavbar() {
         </Link>
 
         {/* Center nav - desktop only */}
-        <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'center' }} className="hidden md:flex">
+        {isDesktop && (
+        <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'center' }}>
           <a href="#hiw" style={{
             textDecoration: 'none',
             color: 'var(--dark)',
@@ -76,10 +87,12 @@ export default function NewNavbar() {
             Contact Us
           </a>
         </div>
+        )}
 
         {/* Right side - Get Started button */}
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <div className="hidden md:flex" style={{ gap: '0.75rem' }}>
+          {isDesktop && (
+          <div style={{ gap: '0.75rem', display: 'flex' }}>
             <div style={{ position: 'relative', display: 'inline-block' }}>
               <Link href="/login" className="btn-glow-amber" style={{
                 padding: '0.5rem 1.25rem',
@@ -105,9 +118,11 @@ export default function NewNavbar() {
               }} />
             </div>
           </div>
+          )}
           
           {/* Mobile menu button */}
-          <button type="button" onClick={() => setMenuOpen(!menuOpen)} className="md:hidden" style={{
+          {!isDesktop && (
+          <button type="button" onClick={() => setMenuOpen(!menuOpen)} style={{
             background: 'none',
             border: 'none',
             fontSize: '1.5rem',
@@ -116,11 +131,12 @@ export default function NewNavbar() {
           }}>
             {menuOpen ? '✕' : '☰'}
           </button>
+          )}
         </div>
       </div>
 
       {/* Mobile menu */}
-      {menuOpen && (
+      {menuOpen && !isDesktop && (
         <div style={{
           position: 'absolute',
           top: '72px',

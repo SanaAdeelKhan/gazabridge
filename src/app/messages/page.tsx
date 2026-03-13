@@ -24,7 +24,6 @@ function MessagesContent() {
   const [newMsg, setNewMsg] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
-  const [mobileView, setMobileView] = useState<'list' | 'chat'>('list')
   const [isDesktop, setIsDesktop] = useState(false)
   const [showChat, setShowChat] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -91,8 +90,6 @@ function MessagesContent() {
     const { data: profile } = await supabase
       .from('profiles').select('*').eq('id', otherId).single()
     if (!profile) return
-
-    const myRole = profile.role === 'volunteer' ? 'seeker' : 'volunteer'
 
     const volunteerIdVal = profile.role === 'volunteer' ? otherId : user!.id
     const seekerIdVal = profile.role === 'volunteer' ? user!.id : otherId
@@ -208,7 +205,7 @@ function MessagesContent() {
 
         {/* Chat area */}
         {(isDesktop || showChat) && (
-        <div style={{ display: 'flex', flexDirection: 'column', background: '#fff', height: isDesktop ? 'auto' : 'calc(100vh - 64px)', overflow: isDesktop ? 'visible' : 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', background: '#fff', height: '100%', overflow: 'hidden' }}>
           {!activeConvo ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
               <div style={{ fontSize: '3rem', marginBottom: '12px' }}>💬</div>
@@ -242,16 +239,15 @@ function MessagesContent() {
               {/* Messages */}
               <div className="messages-scroll" style={{ 
                 flex: 1, 
-                overflowY: isDesktop ? 'auto' : 'scroll',
-                WebkitOverflowScrolling: isDesktop ? 'auto' : 'touch',
-                height: isDesktop ? 'auto' : 0,
-                minHeight: isDesktop ? 'auto' : 0,
+                overflowY: 'auto',
+                WebkitOverflowScrolling: 'touch',
                 padding: '24px', 
                 display: 'flex', 
                 flexDirection: 'column', 
                 gap: '12px', 
                 scrollbarWidth: 'thin' as const, 
-                scrollbarColor: 'rgba(192,122,26,0.4) transparent' 
+                scrollbarColor: 'rgba(192,122,26,0.4) transparent',
+                minHeight: 0
               }}>
                 {messages.length === 0 ? (
                   <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.875rem', padding: '40px 0' }}>

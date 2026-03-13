@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import NewNavbar from '@/components/NewNavbar'
+import Navbar from '@/components/Navbar'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 
@@ -132,7 +132,7 @@ export default function QuizPage() {
 
   return (
     <>
-      <NewNavbar />
+      <Navbar />
       <div style={{ maxWidth: '680px', margin: '0 auto', padding: '48px 24px' }}>
 
         {stage === 'intro' && (

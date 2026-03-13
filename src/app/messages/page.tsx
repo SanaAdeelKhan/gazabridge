@@ -208,7 +208,7 @@ function MessagesContent() {
 
         {/* Chat area */}
         {(isDesktop || showChat) && (
-        <div style={{ display: 'flex', flexDirection: 'column', background: '#fff', height: isDesktop ? 'auto' : 'calc(100vh - 64px)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', background: '#fff', height: isDesktop ? 'auto' : 'calc(100vh - 64px)', overflow: isDesktop ? 'visible' : 'hidden' }}>
           {!activeConvo ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
               <div style={{ fontSize: '3rem', marginBottom: '12px' }}>💬</div>
@@ -217,15 +217,18 @@ function MessagesContent() {
             </div>
           ) : (
             <>
-              {/* Header */}
-              <div style={{ padding: '16px 24px', borderBottom: '1px solid #fde68a', display: 'flex', alignItems: 'center', gap: '14px', background: '#fffbeb' }}>
-                {!isDesktop && (
-                  <button type="button" onClick={() => setShowChat(false)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: '#C07A1A', fontFamily: 'inherit', fontSize: '15px', fontWeight: 600, cursor: 'pointer', padding: '12px 0' }}>
-                    <ArrowLeft size={18} /> Back
+              {/* Mobile Back Button - Sticky at top */}
+              {!isDesktop && (
+                <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(250,246,238,0.97)', backdropFilter: 'blur(10px)', padding: '12px 16px', borderBottom: '1px solid rgba(192,122,26,0.15)' }}>
+                  <button type="button" onClick={() => setShowChat(false)} style={{ background: 'none', border: 'none', color: '#C07A1A', fontFamily: 'inherit', fontSize: '15px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: 0 }}>
+                    <ArrowLeft size={18} /> Back to conversations
                   </button>
-                )}
-                {isDesktop && (
-                  <>
+                </div>
+              )}
+
+              {/* Desktop Header */}
+              {isDesktop && (
+              <div style={{ padding: '16px 24px', borderBottom: '1px solid #fde68a', display: 'flex', alignItems: 'center', gap: '14px', background: '#fffbeb' }}>
                 <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.85rem' }}>
                   {getInitials(activeConvo.other?.name)}
                 </div>
@@ -233,12 +236,23 @@ function MessagesContent() {
                   <div style={{ fontWeight: 700 }}>{activeConvo.other?.id === ADMIN_ID ? '🛡️ GazaBridge Admin' : activeConvo.other?.name}</div>
                   <div style={{ fontSize: '0.75rem', color: '#4A5C3A' }}>🟢 {activeConvo.other?.country}</div>
                 </div>
-                  </>
-                )}
               </div>
+              )}
 
               {/* Messages */}
-              <div className="messages-scroll" style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px', scrollbarWidth: 'thin' as const, scrollbarColor: 'rgba(192,122,26,0.4) transparent' }}>
+              <div className="messages-scroll" style={{ 
+                flex: 1, 
+                overflowY: isDesktop ? 'auto' : 'scroll',
+                WebkitOverflowScrolling: isDesktop ? 'auto' : 'touch',
+                height: isDesktop ? 'auto' : 0,
+                minHeight: isDesktop ? 'auto' : 0,
+                padding: '24px', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '12px', 
+                scrollbarWidth: 'thin' as const, 
+                scrollbarColor: 'rgba(192,122,26,0.4) transparent' 
+              }}>
                 {messages.length === 0 ? (
                   <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.875rem', padding: '40px 0' }}>
                     No messages yet — say hello! 👋

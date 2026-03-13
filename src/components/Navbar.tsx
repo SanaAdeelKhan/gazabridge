@@ -145,21 +145,6 @@ export default function Navbar() {
         {/* Desktop nav - CENTER */}
         {isDesktop && (
           <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-          <Link href="/how-it-works" style={navLinkStyle('/how-it-works')}
-            onMouseEnter={(e) => {
-              if (pathname !== '/how-it-works') {
-                e.currentTarget.style.background = 'rgba(92,107,46,0.07)'
-                e.currentTarget.style.color = '#1A1A14'
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (pathname !== '/how-it-works') {
-                e.currentTarget.style.background = 'transparent'
-                e.currentTarget.style.color = '#3D3D2E'
-              }
-            }}>
-            How it Works
-          </Link>
           {user && (
             <>
               <Link href="/volunteers" style={navLinkStyle('/volunteers')}
@@ -311,7 +296,6 @@ export default function Navbar() {
       {/* Mobile menu */}
       {menuOpen && !isDesktop && (
         <div style={{ position: 'absolute', top: '64px', left: 0, right: 0, background: 'rgba(250,246,238,0.97)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(192,122,26,0.15)', padding: '16px 24px 24px', display: 'flex', flexDirection: 'column', gap: '4px', zIndex: 49 }}>
-          <Link href="/how-it-works" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>How it Works</Link>
           {user && <Link href="/volunteers" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>Volunteers</Link>}
           {user && <Link href="/needs" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>Needs</Link>}
           {user && (

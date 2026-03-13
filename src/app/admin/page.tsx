@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Navbar from '@/components/Navbar'
+import NewNavbar from '@/components/NewNavbar'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 
@@ -99,7 +99,7 @@ export default function AdminPage() {
 
   const inputStyle: React.CSSProperties = { width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid #fde68a', fontSize: '0.95rem', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', background: '#fffbeb' }
 
-  if (loading) return <><Navbar /><div style={{ textAlign: 'center', padding: '80px', color: '#9ca3af' }}>Checking access...</div></>
+  if (loading) return <><NewNavbar /><div style={{ textAlign: 'center', padding: '80px', color: '#9ca3af' }}>Checking access...</div></>
   if (!isAdmin) return null
 
   const volunteers = profiles.filter(p => p.is_volunteer)
@@ -108,7 +108,7 @@ export default function AdminPage() {
 
   return (
     <>
-      <Navbar />
+      <NewNavbar />
       <div style={{ maxWidth: '860px', margin: '0 auto', padding: '48px 24px', fontFamily: 'inherit' }}>
 
         <div style={{ marginBottom: '36px' }}>

@@ -1,10 +1,10 @@
-import Navbar from '@/components/Navbar'
+import NewNavbar from '@/components/NewNavbar'
 import HowItWorks from '@/components/HowItWorks'
 
 export default function HowItWorksPage() {
   return (
     <>
-      <Navbar />
+      <NewNavbar />
       <HowItWorks />
     </>
   )

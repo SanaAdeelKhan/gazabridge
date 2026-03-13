@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import Navbar from '@/components/Navbar'
+import NewNavbar from '@/components/NewNavbar'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import Link from 'next/link'
@@ -43,11 +43,11 @@ export default function ProfilePage() {
     router.push(`/messages?to=${id}`)
   }
 
-  if (loading) return <><Navbar /><div style={{ textAlign: 'center', padding: '80px', color: '#9ca3af' }}>Loading...</div></>
+  if (loading) return <><NewNavbar /><div style={{ textAlign: 'center', padding: '80px', color: '#9ca3af' }}>Loading...</div></>
 
   return (
     <>
-      <Navbar />
+      <NewNavbar />
       <div style={{ maxWidth: '720px', margin: '0 auto', padding: '48px 24px', fontFamily: 'inherit' }}>
 
         {/* Profile card */}

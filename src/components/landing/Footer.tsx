@@ -221,7 +221,7 @@ export default function Footer() {
             color: 'rgba(250,246,238,0.4)',
             fontSize: '0.85rem',
           }}>
-            © 2025 GazaBridge. Made with ♥ for the people of Gaza.
+            © 2026 GazaBridge. Made with ♥ for the people of Gaza.
           </p>
 
           {/* Social links */}

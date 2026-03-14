@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import Link from 'next/link'
 import { sendWelcomeMessageIfNew } from '@/components/sendWelcomeMessage'
-import MatchSection from '@/components/MatchSection'
+import OfferMatches from '@/components/OfferMatches'
 
 type Profile = { name: string; role: string; country: string; languages: string[]; linkedin?: string; whatsapp_number?: string; whatsapp_group?: string; english_level?: string; gender?: string }
 type Offer = { id: string; category: string; description: string; availability: string }
@@ -271,17 +271,6 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* Match section */}
-              <MatchSection
-                userId={user!.id}
-                userRole={profile?.role || ''}
-                userLanguages={profile?.languages || []}
-                userCategories={[
-                  ...offers.map(o => o.category),
-                  ...requests.map(r => r.category),
-                ]}
-              />
-
               {/* ── OFFERS SECTION ── */}
               <div style={{ marginTop: '40px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -346,6 +335,12 @@ export default function DashboardPage() {
                       onMouseOut={e => (e.target as HTMLElement).style.color = '#d1d5db'}>
                       Delete
                     </button>
+                  <OfferMatches
+                    userId={user!.id}
+                    offerCategory={offer.category}
+                    offerDescription={offer.description}
+                    userLanguages={profile?.languages || []}
+                  />
                   </div>
                 ))}
               </div>

@@ -17,6 +17,8 @@ function MessagesContent() {
   const toId = searchParams.get('to')
   const ADMIN_ID = 'c7990cfb-25a6-4f4c-bf32-ac23900b12f6'
   const isGift = searchParams.get('gift') === 'true'
+  const fromCat = searchParams.get('cat') || ''
+  const fromDesc = searchParams.get('desc') || ''
 
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [activeConvo, setActiveConvo] = useState<Conversation | null>(null)
@@ -41,6 +43,7 @@ function MessagesContent() {
     if (!user || !toId) return
     startOrOpenConvo(toId)
     if (isGift) setNewMsg(`🎁 Hi! I'd love to gift you a free course. What topic would help you most right now? (e.g. English, coding, design...)`)
+    if (fromCat && fromDesc) setNewMsg(`Assalamu Alaikum 🕊️ I saw your request for ${fromCat} and I'd love to help. I'm offering: "${fromDesc.slice(0, 120)}${fromDesc.length > 120 ? '...' : ''}". Would you be interested in connecting?`)
   }, [user, toId])
 
   useEffect(() => {

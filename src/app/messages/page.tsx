@@ -42,8 +42,7 @@ function MessagesContent() {
   useEffect(() => {
     if (!user || !toId) return
     startOrOpenConvo(toId)
-    if (isGift) setNewMsg(`🎁 Hi! I'd love to gift you a free course. What topic would help you most right now? (e.g. English, coding, design...)`)
-    if (fromCat && fromDesc) setNewMsg(`Assalamu Alaikum 🕊️ I saw your request for ${fromCat} and I'd love to help. I'm offering: "${fromDesc.slice(0, 120)}${fromDesc.length > 120 ? '...' : ''}". Would you be interested in connecting?`)
+
   }, [user, toId])
 
   useEffect(() => {
@@ -119,6 +118,18 @@ function MessagesContent() {
       setActiveConvo(convo)
       setShowChat(true)
       fetchConversations()
+      // Only pre-fill if conversation is empty
+      const { data: existingMsgs } = await supabase
+        .from('messages').select('id').eq('conversation_id', convoId).limit(1)
+      if (!existingMsgs || existingMsgs.length === 0) {
+        const gift = new URLSearchParams(window.location.search).get('gift')
+        const cat = new URLSearchParams(window.location.search).get('cat') || ''
+        const desc = new URLSearchParams(window.location.search).get('desc') || ''
+        const isSeeker = new URLSearchParams(window.location.search).get('seeker')
+        if (gift) setNewMsg(`🎁 Hi! I'd love to gift you a free course. What topic would help you most right now? (e.g. English, coding, design...)`)
+        else if (cat && desc && !isSeeker) setNewMsg(`Assalamu Alaikum 🕊️ I saw your request for ${cat} and I'd love to help. I'm offering: "${desc.slice(0, 120)}${desc.length > 120 ? '...' : ''}". Would you be interested in connecting?`)
+        else if (cat && desc && isSeeker) setNewMsg(`Assalamu Alaikum 🕊️ I need help with ${cat}. ${desc.slice(0, 120)}${desc.length > 120 ? '...' : ''} — would you be able to help me?`)
+      }
     }
   }
 

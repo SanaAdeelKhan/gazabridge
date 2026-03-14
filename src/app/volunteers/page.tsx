@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
+import SubjectTabs from '@/components/SubjectTabs'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
@@ -21,7 +22,8 @@ export default function VolunteersPage() {
   const router = useRouter()
   const [offers, setOffers] = useState<Offer[]>([])
   const [filtered, setFiltered] = useState<Offer[]>([])
-  const [activecat, setActivecat] = useState('All')
+  const [activecat, setActivecat] = useState('')
+  const [activelabel, setActivelabel] = useState('')
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -33,7 +35,7 @@ export default function VolunteersPage() {
 
   useEffect(() => {
     let result = offers
-    if (activecat !== 'All') result = result.filter(o => o.category === activecat)
+    if (activecat) result = result.filter(o => o.category === activecat)
     if (search) result = result.filter(o =>
       o.description.toLowerCase().includes(search.toLowerCase()) ||
       o.profiles?.name.toLowerCase().includes(search.toLowerCase())
@@ -61,16 +63,11 @@ export default function VolunteersPage() {
           style={{ width: '100%', maxWidth: '400px', padding: '12px 20px', borderRadius: '100px', border: '1.5px solid #fde68a', fontSize: '0.9rem', outline: 'none', marginBottom: '24px', fontFamily: 'inherit' }}
           placeholder="Search by skill, name..." />
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '32px' }}>
-          {categories.map(cat => (
-            <button key={cat} onClick={() => setActivecat(cat)} style={{
-              padding: '8px 18px', borderRadius: '100px', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit',
-              border: activecat === cat ? '2px solid #d97706' : '2px solid #e5e7eb',
-              background: activecat === cat ? '#d97706' : '#fff',
-              color: activecat === cat ? '#fff' : '#374151',
-            }}>{cat}</button>
-          ))}
-        </div>
+        <SubjectTabs
+          mode="volunteers"
+          activeLabel={activelabel}
+          onChange={(offerCat, _) => { setActivecat(offerCat); setActivelabel(offerCat ? offerCat : '') }}
+        />
 
         {loading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
@@ -101,67 +98,55 @@ export default function VolunteersPage() {
                   <p style={{ fontSize: '0.78rem', color: '#9ca3af' }}>🕐 {offer.availability}</p>
                 )}
 
-                {/* Profile info — clickable name */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '8px', borderTop: '1px solid #f3f4f6' }}>
-                  <Link href={`/profile/${offer.profiles?.id}`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg,#d97706,#f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0 }}>
-                      {offer.profiles?.name?.slice(0, 2).toUpperCase()}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#1a1a2e' }}>{offer.profiles?.name}</div>{offer.profiles?.is_admin && <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '2px 8px', borderRadius: '100px', background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>⚙️ Admin</span>}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{offer.profiles?.country}</div>
-                      {offer.profiles?.gender && <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{offer.profiles.gender}</div>}
-                    </div>
-                  </Link>
-                </div>
-
-                {/* Languages */}
-                {(offer.profiles?.languages?.length ?? 0) > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                    {offer.profiles.languages.map(l => (
-                      <span key={l} style={{ fontSize: '0.7rem', background: '#f9fafb', border: '1px solid #e5e7eb', padding: '2px 8px', borderRadius: '100px', color: '#6b7280' }}>{l}</span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Action buttons */}
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <button
-                    onClick={() => handleMessage(offer.profiles?.id)}
-                    style={{ flex: 1, padding: '9px 12px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit' }}
-                  >
-                    💬 Message
-                  </button>
-
-                  {offer.profiles?.whatsapp_number && (
-                    <a
-                    
-                      href={`https://wa.me/${offer.profiles.whatsapp_number.replace(/[^0-9]/g, '')}`}
-                      target="_blank" rel="noopener noreferrer"
-                      style={{ flex: 1, padding: '9px 12px', borderRadius: '100px', background: '#25d366', color: '#fff', fontWeight: 600, fontSize: '0.82rem', textDecoration: 'none', textAlign: 'center' }}
-                    >
-                      💚 WhatsApp
-                    </a>
-                  )}
-
-                  {offer.profiles?.whatsapp_group && (
-                    <a
-                      href={offer.profiles.whatsapp_group}
-                      target="_blank" rel="noopener noreferrer"
-                      style={{ flex: 1, padding: '9px 12px', borderRadius: '100px', background: '#128c7e', color: '#fff', fontWeight: 600, fontSize: '0.82rem', textDecoration: 'none', textAlign: 'center' }}
-                    >
-                      👥 Join Group
-                    </a>
-                  )}
-
-                  {offer.profiles?.linkedin && (
-                    <a
-                      href={offer.profiles.linkedin.startsWith('http') ? offer.profiles.linkedin : `https://${offer.profiles.linkedin}`}
-                      target="_blank" rel="noopener noreferrer"
-                      style={{ padding: '9px 12px', borderRadius: '100px', background: '#f0f9ff', color: '#0077b5', border: '1px solid #bae6fd', fontWeight: 600, fontSize: '0.82rem', textDecoration: 'none' }}
-                    >
-                      in
-                    </a>
+                {/* Profile info — gated */}
+                <div style={{ paddingTop: '8px', borderTop: '1px solid #f3f4f6' }}>
+                  {user ? (
+                    <>
+                      <Link href={`/profile/${offer.profiles?.id}`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg,#d97706,#f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0 }}>
+                          {offer.profiles?.name?.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#1a1a2e' }}>{offer.profiles?.name}</div>
+                            {offer.profiles?.is_admin && <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '2px 8px', borderRadius: '100px', background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>⚙️ Admin</span>}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{offer.profiles?.country}</div>
+                          {offer.profiles?.gender && <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{offer.profiles.gender}</div>}
+                        </div>
+                      </Link>
+                      {(offer.profiles?.languages?.length ?? 0) > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px' }}>
+                          {offer.profiles.languages.map(l => (
+                            <span key={l} style={{ fontSize: '0.7rem', background: '#f9fafb', border: '1px solid #e5e7eb', padding: '2px 8px', borderRadius: '100px', color: '#6b7280' }}>{l}</span>
+                          ))}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button onClick={() => handleMessage(offer.profiles?.id)} style={{ flex: 1, padding: '9px 12px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+                          💬 Message
+                        </button>
+                        {offer.profiles?.whatsapp_number && (
+                          <a href={`https://wa.me/${offer.profiles.whatsapp_number.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '9px 12px', borderRadius: '100px', background: '#25d366', color: '#fff', fontWeight: 600, fontSize: '0.82rem', textDecoration: 'none', textAlign: 'center' }}>
+                            💚 WhatsApp
+                          </a>
+                        )}
+                        {offer.profiles?.whatsapp_group && (
+                          <a href={offer.profiles.whatsapp_group} target="_blank" rel="noopener noreferrer" style={{ flex: 1, padding: '9px 12px', borderRadius: '100px', background: '#128c7e', color: '#fff', fontWeight: 600, fontSize: '0.82rem', textDecoration: 'none', textAlign: 'center' }}>
+                            👥 Join Group
+                          </a>
+                        )}
+                        {offer.profiles?.linkedin && (
+                          <a href={offer.profiles.linkedin.startsWith('http') ? offer.profiles.linkedin : `https://${offer.profiles.linkedin}`} target="_blank" rel="noopener noreferrer" style={{ padding: '9px 12px', borderRadius: '100px', background: '#f0f9ff', color: '#0077b5', border: '1px solid #bae6fd', fontWeight: 600, fontSize: '0.82rem', textDecoration: 'none' }}>
+                            in
+                          </a>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <Link href="/login" style={{ display: 'block', width: '100%', padding: '10px', borderRadius: '100px', background: '#f9fafb', border: '2px solid #e5e7eb', color: '#6b7280', fontWeight: 600, fontSize: '0.82rem', textAlign: 'center', textDecoration: 'none' }}>
+                      🔒 Sign in to connect
+                    </Link>
                   )}
                 </div>
 

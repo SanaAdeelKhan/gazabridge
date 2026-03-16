@@ -17,15 +17,16 @@ const categoryMap: Record<string, string> = {
   '📚 Teaching / Language': '📚 Learn a language',
   '💻 Tech / Coding / AI': '💻 Learn tech / AI skills',
   '💼 Career / Mentorship': '💼 Career / CV help',
-  '🫂 Mental Health': '🫂 Mental health support',
+  '🫂  Mental Health': '🫂  Mental health support',
   '📖 Academic Tutoring': '📖 Academic tutoring',
   '🎨 Creative / Design': '🎨 Creative skills',
   '🌐 Other': '🌐 Other',
 }
 
-export default function OfferMatches({ userId, offerCategory, userLanguages }: {
+export default function OfferMatches({ userId, offerCategory, offerDescription, userLanguages }: {
   userId: string
   offerCategory: string
+  offerDescription: string
   userLanguages: string[]
 }) {
   const router = useRouter()
@@ -79,7 +80,7 @@ export default function OfferMatches({ userId, offerCategory, userLanguages }: {
                 {s.english_level && <div style={{ fontSize: '0.7rem', color: '#b45309' }}>{s.english_level === 'Beginner' ? '🌱' : s.english_level === 'Intermediate' ? '📘' : '🏆'} {s.english_level} English</div>}
               </div>
             </div>
-            <button onClick={() => router.push(`/messages?to=${s.id}`)}
+            <button onClick={() => router.push(`/messages?to=${s.id}&cat=${encodeURIComponent(offerCategory)}&desc=${encodeURIComponent(offerDescription)}`)}
               style={{ padding: '6px 16px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
               💬 Help
             </button>

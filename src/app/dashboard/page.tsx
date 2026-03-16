@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import Link from 'next/link'
 import { sendWelcomeMessageIfNew } from '@/components/sendWelcomeMessage'
-import MatchSection from '@/components/MatchSection'
+import OfferMatches from '@/components/OfferMatches'
+import RequestMatches from '@/components/RequestMatches'
 
 type Profile = { name: string; role: string; country: string; languages: string[]; linkedin?: string; whatsapp_number?: string; whatsapp_group?: string; english_level?: string; gender?: string }
 type Offer = { id: string; category: string; description: string; availability: string }
@@ -271,17 +272,6 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* Match section */}
-              <MatchSection
-                userId={user!.id}
-                userRole={profile?.role || ''}
-                userLanguages={profile?.languages || []}
-                userCategories={[
-                  ...offers.map(o => o.category),
-                  ...requests.map(r => r.category),
-                ]}
-              />
-
               {/* ── OFFERS SECTION ── */}
               <div style={{ marginTop: '40px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -346,6 +336,12 @@ export default function DashboardPage() {
                       onMouseOut={e => (e.target as HTMLElement).style.color = '#d1d5db'}>
                       Delete
                     </button>
+                  <OfferMatches
+                    userId={user!.id}
+                    offerCategory={offer.category}
+                    offerDescription={offer.description}
+                    userLanguages={profile?.languages || []}
+                  />
                   </div>
                 ))}
               </div>
@@ -398,11 +394,17 @@ export default function DashboardPage() {
                       <span style={{ fontSize: '0.75rem', background: '#f0fdf4', color: '#16a34a', padding: '3px 12px', borderRadius: '100px', fontWeight: 600 }}>{req.category}</span>
                       <p style={{ color: '#555', fontSize: '0.875rem', lineHeight: 1.6, marginTop: '10px' }}>{req.description}</p>
                     </div>
-                    <button onClick={() => deleteRequest(req.id)} style={{ color: '#d1d5db', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0, alignSelf: 'flex-start' }}
+                      <button onClick={() => deleteRequest(req.id)} style={{ color: '#d1d5db', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0, alignSelf: 'flex-start' }}
                       onMouseOver={e => (e.target as HTMLElement).style.color = '#ef4444'}
                       onMouseOut={e => (e.target as HTMLElement).style.color = '#d1d5db'}>
                       Delete
                     </button>
+                  <RequestMatches
+                    userId={user!.id}
+                    requestCategory={req.category}
+                    requestDescription={req.description}
+                    userLanguages={profile?.languages || []}
+                  />
                   </div>
                 ))}
               </div>

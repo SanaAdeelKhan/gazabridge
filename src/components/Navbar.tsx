@@ -192,6 +192,21 @@ export default function Navbar() {
                 }}>
                 Messages{badge}
               </Link>
+              <Link href="/resources" style={navLinkStyle('/resources')}
+                onMouseEnter={(e) => {
+                  if (pathname !== '/resources') {
+                    e.currentTarget.style.background = 'rgba(92,107,46,0.07)'
+                    e.currentTarget.style.color = '#1A1A14'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (pathname !== '/resources') {
+                    e.currentTarget.style.background = 'transparent'
+                    e.currentTarget.style.color = '#3D3D2E'
+                  }
+                }}>
+                Resources
+              </Link>
               {isAdmin && (
                 <Link href="/admin" style={navLinkStyle('/admin')}
                   onMouseEnter={(e) => {
@@ -302,6 +317,9 @@ export default function Navbar() {
             <Link href="/messages" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }} onClick={() => setMenuOpen(false)}>
               Messages{badge}
             </Link>
+          )}
+          {user && (
+            <Link href="/resources" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>Resources</Link>
           )}
           {user ? (
             <>

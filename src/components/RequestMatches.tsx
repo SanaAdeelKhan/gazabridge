@@ -41,7 +41,7 @@ export default function RequestMatches({ userId, requestCategory, requestDescrip
     const { data: offers } = await supabase
       .from('offers')
       .select('*, profiles(id, name, country, languages)')
-      .eq('category', mappedCat)
+      .ilike('category', `%${mappedCat}%`)
 
     if (!offers) { setLoading(false); return }
 
@@ -79,7 +79,7 @@ export default function RequestMatches({ userId, requestCategory, requestDescrip
               </div>
             </div>
             <button
-              onClick={() => router.push(`/messages?to=${v.id}&cat=${encodeURIComponent(requestCategory)}&desc=${encodeURIComponent(requestDescription)}&seeker=true`)}
+              onClick={() => router.push(`/profile/${v.id}`)}
               style={{ padding: '6px 16px', borderRadius: '100px', background: '#16a34a', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
               💬 Connect
             </button>

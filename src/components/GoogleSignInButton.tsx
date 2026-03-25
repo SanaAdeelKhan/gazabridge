@@ -1,13 +1,24 @@
 'use client'
 import { supabase } from '@/lib/supabase'
 
-interface Props { label?: string }
+interface Props { 
+  label?: string
+  intent?: string  // 'volunteer' | 'need' | 'guest'
+}
 
-export default function GoogleSignInButton({ label = 'Continue with Google' }: Props) {
+export default function GoogleSignInButton({ label = 'Continue with Google', intent }: Props) {
   const handleGoogleSignIn = async () => {
+    // Pass intent as 'next' param so auth/callback can read it
+    const callbackUrl = intent
+      ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${intent}`
+      : `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`, queryParams: { prompt: 'select_account' } }
+      options: {
+        redirectTo: callbackUrl,
+        queryParams: { prompt: 'select_account' }
+      }
     })
   }
 

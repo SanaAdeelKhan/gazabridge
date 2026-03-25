@@ -14,6 +14,9 @@ function LoginContent() {
     localStorage.setItem('userIntent', intent)
   }
 
+  // Show guest-specific title on login page
+  const isGuestIntent = intent === 'guest'
+
   return (
     <div style={{
       position: 'relative',
@@ -116,16 +119,16 @@ function LoginContent() {
               justifyContent: 'center',
               margin: '0 auto',
             }}>
-              <Image 
-                src="/logo.png" 
-                alt="GazaBridge" 
-                width={200} 
+              <Image
+                src="/logo.png"
+                alt="GazaBridge"
+                width={200}
                 height={80}
                 style={{ objectFit: 'contain' }}
               />
             </div>
 
-            {/* Title */}
+            {/* Title — changes for guest intent */}
             <h1 style={{
               fontFamily: "'Playfair Display', serif",
               fontSize: 'clamp(2rem, 4vw, 2.6rem)',
@@ -134,22 +137,44 @@ function LoginContent() {
               textAlign: 'center',
               marginTop: '0.6rem',
             }}>
-              Join GazaBridge
+              {isGuestIntent ? 'Browse GazaBridge' : 'Join GazaBridge'}
             </h1>
 
-            {/* Subtitle */}
+            {/* Subtitle — changes for guest intent */}
             <p style={{
               fontSize: '0.95rem',
               color: '#8A8572',
               textAlign: 'center',
               marginTop: '0.25rem',
             }}>
-              Free · Takes 2 minutes · No password needed
+              {isGuestIntent
+                ? 'Sign in with Google to explore — no profile needed'
+                : 'Free · Takes 2 minutes · No password needed'}
             </p>
 
-            {/* Google Sign In Button */}
+            {/* Guest info banner */}
+            {isGuestIntent && (
+              <div style={{
+                background: 'rgba(92,107,46,0.07)',
+                border: '1px solid rgba(92,107,46,0.2)',
+                borderRadius: '14px',
+                padding: '0.85rem 1.1rem',
+                width: '100%',
+                marginTop: '1rem',
+                fontSize: '0.82rem',
+                color: '#3D3D2E',
+                lineHeight: 1.6,
+              }}>
+                🧭 As a guest you can browse volunteers, courses, and public resources. Create a profile anytime to connect.
+              </div>
+            )}
+
+            {/* Google Sign In Button — now passes intent */}
             <div style={{ marginTop: '1.25rem', width: '100%' }}>
-              <GoogleSignInButton label="Continue with Google" />
+              <GoogleSignInButton
+                label={isGuestIntent ? 'Continue as Guest / Visitor' : 'Continue with Google'}
+                intent={intent || undefined}
+              />
             </div>
 
             {/* Trust Line */}
@@ -264,159 +289,43 @@ function LoginContent() {
               gap: '0.75rem',
               marginTop: '1.25rem',
             }}>
-              {/* Feature 1 */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                <div style={{
-                  width: '22px',
-                  height: '22px',
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.75rem',
-                  color: 'white',
-                  flexShrink: 0,
-                }}>✓</div>
-                <div>
+              {[
+                { title: '100% Free, Always', desc: 'No fees, no subscriptions, no hidden costs; ever.' },
+                { title: 'Verified Volunteers', desc: 'Real people, real skills; identities confirmed via Google.' },
+                { title: 'Direct Connection', desc: 'Message volunteers directly; no middlemen, no delays.' },
+              ].map((f) => (
+                <div key={f.title} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                   <div style={{
-                    fontFamily: "'Playfair Display', serif",
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    color: 'white',
-                  }}>100% Free, Always</div>
-                  <div style={{
-                    fontSize: '0.82rem',
-                    color: 'rgba(255,255,255,0.72)',
-                  }}>No fees, no subscriptions, no hidden costs; ever.</div>
+                    width: '22px', height: '22px', borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.2)', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.75rem', color: 'white', flexShrink: 0,
+                  }}>✓</div>
+                  <div>
+                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '1rem', fontWeight: 700, color: 'white' }}>{f.title}</div>
+                    <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.72)' }}>{f.desc}</div>
+                  </div>
                 </div>
-              </div>
-
-              {/* Feature 2 */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                <div style={{
-                  width: '22px',
-                  height: '22px',
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.75rem',
-                  color: 'white',
-                  flexShrink: 0,
-                }}>✓</div>
-                <div>
-                  <div style={{
-                    fontFamily: "'Playfair Display', serif",
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    color: 'white',
-                  }}>Verified Volunteers</div>
-                  <div style={{
-                    fontSize: '0.82rem',
-                    color: 'rgba(255,255,255,0.72)',
-                  }}>Real people, real skills; identities confirmed via Google.</div>
-                </div>
-              </div>
-
-              {/* Feature 3 */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                <div style={{
-                  width: '22px',
-                  height: '22px',
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.75rem',
-                  color: 'white',
-                  flexShrink: 0,
-                }}>✓</div>
-                <div>
-                  <div style={{
-                    fontFamily: "'Playfair Display', serif",
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    color: 'white',
-                  }}>Direct Connection</div>
-                  <div style={{
-                    fontSize: '0.82rem',
-                    color: 'rgba(255,255,255,0.72)',
-                  }}>Message volunteers directly; no middlemen, no delays.</div>
-                </div>
-              </div>
+              ))}
             </div>
 
             {/* Stats Row */}
-            <div style={{
-              display: 'flex',
-              gap: 0,
-              justifyContent: 'space-between',
-              marginTop: '1.5rem',
-            }}>
-              {/* Stat 1 */}
-              <div style={{ textAlign: 'center' }}>
-                <div style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: '1.8rem',
-                  fontWeight: 700,
-                  color: 'white',
-                }}>11+</div>
-                <div style={{
-                  fontSize: '0.75rem',
-                  color: 'rgba(255,255,255,0.65)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                }}>Volunteers</div>
-              </div>
-
-              {/* Divider */}
-              <div style={{
-                width: '1px',
-                background: 'rgba(255,255,255,0.2)',
-                alignSelf: 'stretch',
-              }} />
-
-              {/* Stat 2 */}
-              <div style={{ textAlign: 'center' }}>
-                <div style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: '1.8rem',
-                  fontWeight: 700,
-                  color: 'white',
-                }}>11+</div>
-                <div style={{
-                  fontSize: '0.75rem',
-                  color: 'rgba(255,255,255,0.65)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                }}>Help Requests</div>
-              </div>
-
-              {/* Divider */}
-              <div style={{
-                width: '1px',
-                background: 'rgba(255,255,255,0.2)',
-                alignSelf: 'stretch',
-              }} />
-
-              {/* Stat 3 */}
-              <div style={{ textAlign: 'center' }}>
-                <div style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: '1.8rem',
-                  fontWeight: 700,
-                  color: 'white',
-                }}>Free</div>
-                <div style={{
-                  fontSize: '0.75rem',
-                  color: 'rgba(255,255,255,0.65)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                }}>Always</div>
-              </div>
+            <div style={{ display: 'flex', gap: 0, justifyContent: 'space-between', marginTop: '1.5rem' }}>
+              {[
+                { value: '11+', label: 'Volunteers' },
+                { value: '11+', label: 'Help Requests' },
+                { value: 'Free', label: 'Always' },
+              ].map((s, i, arr) => (
+                <>
+                  <div key={s.label} style={{ textAlign: 'center' }}>
+                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.8rem', fontWeight: 700, color: 'white' }}>{s.value}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</div>
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div key={`div-${i}`} style={{ width: '1px', background: 'rgba(255,255,255,0.2)', alignSelf: 'stretch' }} />
+                  )}
+                </>
+              ))}
             </div>
           </div>
         </div>
@@ -431,21 +340,9 @@ function LoginContent() {
         }
 
         @media (max-width: 768px) {
-          .login-card {
-            flex-direction: column-reverse !important;
-          }
-          .right-panel {
-            border-radius: 20px 20px 0 0 !important;
-            border-right: none !important;
-          }
-          .left-panel {
-            border-radius: 0 0 20px 20px !important;
-            border-right: none !important;
-            padding: 2rem 1.5rem !important;
-          }
-          .right-panel {
-            padding: 2rem 1.5rem !important;
-          }
+          .login-card { flex-direction: column-reverse !important; }
+          .right-panel { border-radius: 20px 20px 0 0 !important; border-right: none !important; padding: 2rem 1.5rem !important; }
+          .left-panel { border-radius: 0 0 20px 20px !important; border-right: none !important; padding: 2rem 1.5rem !important; }
         }
       `}</style>
     </div>

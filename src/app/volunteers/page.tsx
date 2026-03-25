@@ -37,7 +37,7 @@ type Volunteer = {
 }
 
 export default function VolunteersPage() {
-  const { user } = useAuth()
+  const { user, isGuest } = useAuth()
   const router = useRouter()
   const [volunteers, setVolunteers] = useState<Volunteer[]>([])
   const [filtered, setFiltered] = useState<Volunteer[]>([])
@@ -59,7 +59,6 @@ export default function VolunteersPage() {
     ]).then(([{ data: offersData }, { data: coursesData }]) => {
       if (!offersData) { setLoading(false); return }
 
-      // Group offers by volunteer profile
       const volMap: Record<string, Volunteer> = {}
       offersData.forEach((o: any) => {
         const p = o.profiles
@@ -87,7 +86,6 @@ export default function VolunteersPage() {
         })
       })
 
-      // Attach courses to volunteers
       if (coursesData) {
         coursesData.forEach((c: any) => {
           if (volMap[c.instructor_id]) {
@@ -138,6 +136,19 @@ export default function VolunteersPage() {
           <p className="font-arabic" style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '4px', direction: 'rtl' }}>المتطوعون يقدمون مهاراتهم مجاناً</p>
         </div>
 
+        {/* Guest notice */}
+        {isGuest && (
+          <div style={{ background: 'rgba(192,122,26,0.07)', border: '1px solid rgba(192,122,26,0.2)', borderRadius: '14px', padding: '0.75rem 1.25rem', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.875rem', color: '#3D3D2E' }}>
+              🔒 <strong>Guest mode:</strong> You can browse volunteers but contact details are hidden. Create a profile to connect.
+            </span>
+            <button onClick={() => { try { localStorage.removeItem('gb_guest') } catch { /* ignore */ } router.push('/complete-profile') }}
+              style={{ background: 'linear-gradient(135deg, #C07A1A, #E09030)', color: '#fff', border: 'none', borderRadius: '50px', padding: '0.4rem 1rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Join free →
+            </button>
+          </div>
+        )}
+
         {/* Search */}
         <input
           value={search}
@@ -181,7 +192,8 @@ export default function VolunteersPage() {
                       {vol.name?.slice(0, 2).toUpperCase()}
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      {user ? (
+                      {/* Name — visible to all, but profile link only for logged-in non-guests */}
+                      {user && !isGuest ? (
                         <Link href={`/profile/${vol.id}`} style={{ textDecoration: 'none' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
                             <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a1a2e' }}>{vol.name}</span>
@@ -190,16 +202,17 @@ export default function VolunteersPage() {
                           <div style={{ fontSize: '0.72rem', color: '#9ca3af' }}>📍 {vol.country}{vol.gender ? ` · ${vol.gender}` : ''}</div>
                         </Link>
                       ) : (
-                        <>
+                        <div>
                           <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a1a2e' }}>{vol.name}</div>
+                          {/* Guests see country but NOT gender */}
                           <div style={{ fontSize: '0.72rem', color: '#9ca3af' }}>📍 {vol.country}</div>
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Languages */}
-                  {vol.languages.length > 0 && (
+                  {/* Languages — hidden from guests */}
+                  {!isGuest && vol.languages.length > 0 && (
                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '10px' }}>
                       {vol.languages.map(l => (
                         <span key={l} style={{ fontSize: '0.65rem', background: '#f9fafb', border: '1px solid #e5e7eb', padding: '1px 7px', borderRadius: '100px', color: '#6b7280' }}>{l}</span>
@@ -208,7 +221,13 @@ export default function VolunteersPage() {
                   )}
 
                   {/* Actions */}
-                  {user ? (
+                  {isGuest ? (
+                    // Guest lock wall
+                    <button onClick={() => { try { localStorage.removeItem('gb_guest') } catch { /* ignore */ } router.push('/complete-profile') }}
+                      style={{ width: '100%', padding: '7px 14px', borderRadius: '100px', background: 'rgba(192,122,26,0.08)', color: '#C07A1A', border: '1.5px dashed rgba(192,122,26,0.3)', fontWeight: 600, fontSize: '0.76rem', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center' }}>
+                      🔒 Sign up to connect
+                    </button>
+                  ) : user ? (
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       <button onClick={() => handleMessage(vol.id)}
                         style={{ padding: '7px 14px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.76rem', cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -230,7 +249,7 @@ export default function VolunteersPage() {
                   )}
                 </div>
 
-                {/* MIDDLE: All offers */}
+                {/* MIDDLE: Offers — visible to all */}
                 <div style={{ flex: '2 1 240px', minWidth: 0, borderLeft: '1px solid #f3f4f6', paddingLeft: '20px' }}>
                   <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#9ca3af', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     Offers
@@ -239,7 +258,9 @@ export default function VolunteersPage() {
                     {vol.offers.map(offer => (
                       <div key={offer.id}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px', flexWrap: 'wrap' }}>
-                          <>{offer.category.split(',').map((cat: string) => cat.trim()).filter(Boolean).map((cat: string) => (<span key={cat} style={{ fontSize: '0.71rem', background: '#fffbeb', color: '#b45309', padding: '2px 10px', borderRadius: '100px', fontWeight: 600, marginRight: '4px', marginBottom: '4px', display: 'inline-block' }}>{cat}</span>))}</>
+                          {offer.category.split(',').map((cat: string) => cat.trim()).filter(Boolean).map((cat: string) => (
+                            <span key={cat} style={{ fontSize: '0.71rem', background: '#fffbeb', color: '#b45309', padding: '2px 10px', borderRadius: '100px', fontWeight: 600, marginRight: '4px', marginBottom: '4px', display: 'inline-block' }}>{cat}</span>
+                          ))}
                           {offer.availability && (
                             <span style={{ fontSize: '0.68rem', color: '#9ca3af' }}>🕐 {offer.availability}</span>
                           )}
@@ -252,7 +273,7 @@ export default function VolunteersPage() {
                   </div>
                 </div>
 
-                {/* RIGHT: Courses */}
+                {/* RIGHT: Courses — visible to all */}
                 <div style={{ flex: '1 1 150px', minWidth: 0, borderLeft: '1px solid #f3f4f6', paddingLeft: '20px' }}>
                   <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#9ca3af', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     Courses

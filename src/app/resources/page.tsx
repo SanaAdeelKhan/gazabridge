@@ -65,6 +65,41 @@ export default function ResourcesPage() {
           </a>
         </div>
 
+        {/* Job Boards / Sites Card */}
+        <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #fde68a', padding: '32px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '12px' }}>💼 Job Boards / Sites</h2>
+          <p style={{ color: '#555', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '24px' }}>
+            Explore curated remote, startup, freelance, and AI-powered job platforms to find your next opportunity.
+          </p>
+          <a 
+            href="/resources/job-boards"
+            style={{ 
+              display: 'inline-block',
+              padding: '12px 32px', 
+              borderRadius: '100px', 
+              background: '#d97706', 
+              color: '#fff', 
+              border: 'none', 
+              fontWeight: 600, 
+              fontSize: '0.95rem', 
+              cursor: 'pointer', 
+              fontFamily: 'inherit',
+              textDecoration: 'none',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#b45309'
+              e.currentTarget.style.transform = 'translateY(-1px)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#d97706'
+              e.currentTarget.style.transform = 'translateY(0)'
+            }}
+          >
+            Open Job Boards →
+          </a>
+        </div>
+
         {/* Bottom padding */}
         <div style={{ height: '60px' }} />
       </div>

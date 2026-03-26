@@ -5,18 +5,18 @@ import Navbar from '@/components/Navbar'
 import { useAuth } from '@/context/AuthContext'
 
 export default function ResourcesPage() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
 
   // Redirect to landing page if not logged in
   useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       router.push('/')
     }
-  }, [user, router])
+  }, [user, loading, router])
 
   // Show nothing while checking auth
-  if (!user) return null
+  if (loading || !user) return null
 
   return (
     <>

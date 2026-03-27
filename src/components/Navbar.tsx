@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { Menu, X } from 'lucide-react'
 
 export default function Navbar() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, isGuest } = useAuth()
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -145,7 +145,7 @@ export default function Navbar() {
         {/* Desktop nav - CENTER */}
         {isDesktop && (
           <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-          {user && (
+          {(user || isGuest) && (
             <>
               <Link href="/volunteers" style={navLinkStyle('/volunteers')}
                 onMouseEnter={(e) => {
@@ -177,7 +177,7 @@ export default function Navbar() {
                 }}>
                 Needs
               </Link>
-              <Link href="/messages" style={navLinkStyle('/messages')}
+              {!isGuest && <Link href="/messages" style={navLinkStyle('/messages')}
                 onMouseEnter={(e) => {
                   if (pathname !== '/messages') {
                     e.currentTarget.style.background = 'rgba(92,107,46,0.07)'
@@ -191,8 +191,8 @@ export default function Navbar() {
                   }
                 }}>
                 Messages{badge}
-              </Link>
-              <Link href="/resources" style={navLinkStyle('/resources')}
+              </Link>}
+              {!isGuest && <Link href="/resources" style={navLinkStyle('/resources')}
                 onMouseEnter={(e) => {
                   if (pathname !== '/resources') {
                     e.currentTarget.style.background = 'rgba(92,107,46,0.07)'
@@ -206,8 +206,8 @@ export default function Navbar() {
                   }
                 }}>
                 Resources
-              </Link>
-              <Link href="/courses" style={navLinkStyle('/courses')}
+              </Link>}
+              {!isGuest && <Link href="/courses" style={navLinkStyle('/courses')}
                 onMouseEnter={(e) => {
                   if (pathname !== '/courses') {
                     e.currentTarget.style.background = 'rgba(92,107,46,0.07)'
@@ -221,8 +221,8 @@ export default function Navbar() {
                   }
                 }}>
                 Courses
-              </Link>
-              {isAdmin && (
+              </Link>}
+              {!isGuest && isAdmin && (
                 <Link href="/admin" style={navLinkStyle('/admin')}
                   onMouseEnter={(e) => {
                     if (pathname !== '/admin') {
@@ -326,8 +326,8 @@ export default function Navbar() {
       {/* Mobile menu */}
       {menuOpen && !isDesktop && (
         <div style={{ position: 'absolute', top: '64px', left: 0, right: 0, background: 'rgba(250,246,238,0.97)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(192,122,26,0.15)', padding: '16px 24px 24px', display: 'flex', flexDirection: 'column', gap: '4px', zIndex: 49 }}>
-          {user && <Link href="/volunteers" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>Volunteers</Link>}
-          {user && <Link href="/needs" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>Needs</Link>}
+          {(user || isGuest) && <Link href="/volunteers" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>Volunteers</Link>}
+          {(user || isGuest) && <Link href="/needs" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>Needs</Link>}
           {user && (
             <Link href="/messages" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }} onClick={() => setMenuOpen(false)}>
               Messages{badge}
@@ -345,6 +345,7 @@ export default function Navbar() {
                 <Link href="/admin" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>⚙️ Admin</Link>
               )}
               <Link href="/dashboard" style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>Dashboard</Link>
+            {isGuest && <button type="button" onClick={() => { try { localStorage.removeItem('gb_guest') } catch {} window.location.href = '/' }} style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}>Exit Guest</button>}
               <button type="button" onClick={signOut} style={{ fontFamily: 'inherit', fontSize: '16px', fontWeight: 500, color: '#3D3D2E', padding: '10px 0', borderBottom: '1px solid rgba(192,122,26,0.08)', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}>Sign Out</button>
             </>
           ) : (

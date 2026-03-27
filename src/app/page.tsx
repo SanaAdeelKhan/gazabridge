@@ -9,12 +9,20 @@ import ContactSection from '@/components/landing/ContactSection'
 import Footer from '@/components/landing/Footer'
 
 async function getStats() {
-  const [{ count: volunteers }, { count: connections }, { count: requests }] = await Promise.all([
+  const [{ count: volunteers }, { count: requests }, { count: visitors }] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'volunteer'),
-    supabase.from('messages').select('*', { count: 'exact', head: true }),
     supabase.from('requests').select('*', { count: 'exact', head: true }),
+    supabase.from('visitor_stats').select('*', { count: 'exact', head: true }),
   ])
-  return { volunteers: volunteers || 11, connections: connections || 0, requests: requests || 11 }
+
+  // Track this page visit (fire and forget)
+  supabase.from('visitor_stats').insert({ page: 'landing' }).then(() => {})
+
+  return {
+    volunteers: volunteers || 11,
+    requests: requests || 11,
+    visitors: (visitors || 0) + 1,
+  }
 }
 
 export default async function Home() {

@@ -28,19 +28,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null
       setUser(currentUser)
-
-      // Check guest flag: only treat as guest if logged in but chose "Just Browsing"
       if (currentUser) {
+        // Real user — always clear guest flag
+        try { localStorage.removeItem('gb_guest') } catch { }
+        setIsGuest(false)
+      } else {
+        // No user — check guest flag
         try {
-          const guestFlag = localStorage.getItem('gb_guest')
-          setIsGuest(guestFlag === 'true')
+          setIsGuest(localStorage.getItem('gb_guest') === 'true')
         } catch {
           setIsGuest(false)
         }
-      } else {
-        setIsGuest(false)
       }
-
       setLoading(false)
     })
 
@@ -48,13 +47,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const currentUser = session?.user ?? null
       setUser(currentUser)
       if (currentUser) {
+        try { localStorage.removeItem('gb_guest') } catch { }
+        setIsGuest(false)
+      } else {
         try {
           setIsGuest(localStorage.getItem('gb_guest') === 'true')
         } catch {
           setIsGuest(false)
         }
-      } else {
-        setIsGuest(false)
       }
     })
 
@@ -62,15 +62,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signOut = async () => {
-    try { localStorage.removeItem('gb_guest') } catch { /* ignore */ }
+    try { localStorage.removeItem('gb_guest') } catch { }
     await supabase.auth.signOut()
     window.location.href = '/'
   }
 
-  // Keep mockLogin as no-op for type compatibility
-  const mockLogin = () => {
-    // No-op: mock login disabled in production
-  }
+  const mockLogin = () => {}
 
   return (
     <AuthContext.Provider value={{ user, loading, isGuest, signOut, mockLogin }}>

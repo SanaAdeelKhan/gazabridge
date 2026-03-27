@@ -19,7 +19,7 @@ const all_langs = ['English', 'Arabic / العربية', 'French', 'Urdu', 'Turk
 
 export default function DashboardPage() {
   // ── FIX 1: get isGuest from AuthContext ──
-  const { user, signOut, isGuest } = useAuth()
+  const { user, signOut, isGuest, loading: authLoading } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [offers, setOffers] = useState<Offer[]>([])
   const [requests, setRequests] = useState<Request[]>([])
@@ -40,30 +40,32 @@ export default function DashboardPage() {
 
   // Redirect to landing page if not logged in
   useEffect(() => {
-    if (!user && !loading) {
+    if (authLoading) return
+    if (!user && !isGuest) {
       router.push('/')
     }
-  }, [user, loading, router])
+  }, [user, authLoading, isGuest, router])
 
   // ── FIX 2: skip fetchData for guests, just stop loading ──
   useEffect(() => {
+    if (authLoading) return
     if (user && !isGuest) {
       fetchData()
       sendWelcomeMessageIfNew(user.id)
-    } else if (user && isGuest) {
+    } else if (isGuest) {
       setLoading(false)
     }
-  }, [user, isGuest])
+  }, [user, isGuest, authLoading])
 
   // ── FIX 3: don't redirect guests to complete-profile ──
   useEffect(() => {
-    if (loading) return
+    if (loading || authLoading) return
+    if (isGuest) return
     if (!user) return
-    if (isGuest) return  // guests have no profile — that's fine
     if (!profile || !profile.role || !profile.name) {
       router.push('/complete-profile')
     }
-  }, [loading, profile, isGuest])
+  }, [loading, authLoading, profile, isGuest, user])
 
   async function fetchData() {
     const { data: prof } = await supabase.from('profiles').select('*').eq('id', user!.id).single()
@@ -136,7 +138,7 @@ export default function DashboardPage() {
 
   const inputStyle = { width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid #fde68a', fontSize: '0.9rem', outline: 'none', fontFamily: 'inherit', background: '#fffbeb', boxSizing: 'border-box' as const }
 
-  if (!user) return null
+  if (!user && !isGuest) return null
 
   return (
     <>
@@ -179,8 +181,8 @@ export default function DashboardPage() {
                     <Link href="/volunteers" style={{ padding: '10px 24px', borderRadius: '100px', background: '#fffbeb', color: '#b45309', fontWeight: 600, fontSize: '0.875rem', textDecoration: 'none', border: '1px solid #fde68a' }}>
                       🙌 Browse Volunteers
                     </Link>
-                    <Link href="/resources" style={{ padding: '10px 24px', borderRadius: '100px', background: '#f0fdf4', color: '#16a34a', fontWeight: 600, fontSize: '0.875rem', textDecoration: 'none', border: '1px solid #bbf7d0' }}>
-                      📚 Browse Resources
+                    <Link href="/needs" style={{ padding: '10px 24px', borderRadius: '100px', background: '#f0fdf4', color: '#16a34a', fontWeight: 600, fontSize: '0.875rem', textDecoration: 'none', border: '1px solid #bbf7d0' }}>
+                      🌟 Browse Needs
                     </Link>
                     <button
                       onClick={() => { try { localStorage.removeItem('gb_guest') } catch { /* ignore */ } router.push('/complete-profile') }}

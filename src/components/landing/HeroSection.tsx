@@ -4,7 +4,6 @@ import Link from 'next/link'
 
 export default function HeroSection() {
   useEffect(() => {
-    // Staggered fade-up animation
     const elements = document.querySelectorAll('.hero-animate')
     elements.forEach((el, i) => {
       setTimeout(() => {
@@ -169,30 +168,37 @@ export default function HeroSection() {
           }}>
             🌟 I Need Support
           </Link>
-          {/* Guest / Visitor button */}
-          <Link href="/login?intent=guest" style={{
-            padding: '0.875rem 2rem',
-            borderRadius: '100px',
-            background: 'rgba(250,246,238,0.15)',
-            color: '#FAF6EE',
-            fontWeight: 600,
-            textDecoration: 'none',
-            fontSize: '1rem',
-            border: '1.5px solid rgba(250,246,238,0.35)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(250,246,238,0.25)'
-            e.currentTarget.style.borderColor = 'rgba(250,246,238,0.6)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(250,246,238,0.15)'
-            e.currentTarget.style.borderColor = 'rgba(250,246,238,0.35)'
-          }}>
+
+          {/* Guest / Visitor button - no login required */}
+          <button
+            onClick={() => {
+              try { localStorage.setItem('gb_guest', 'true') } catch { /* ignore */ }
+              window.location.href = '/dashboard'
+            }}
+            style={{
+              padding: '0.875rem 2rem',
+              borderRadius: '100px',
+              background: 'rgba(250,246,238,0.15)',
+              color: '#FAF6EE',
+              fontWeight: 600,
+              fontSize: '1rem',
+              border: '1.5px solid rgba(250,246,238,0.35)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              transition: 'all 0.2s ease',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(250,246,238,0.25)'
+              e.currentTarget.style.borderColor = 'rgba(250,246,238,0.6)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(250,246,238,0.15)'
+              e.currentTarget.style.borderColor = 'rgba(250,246,238,0.35)'
+            }}
+          >
             🧭 Guest / Visitor
-          </Link>
+          </button>
         </div>
       </div>
 

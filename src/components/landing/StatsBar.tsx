@@ -4,13 +4,13 @@ import { useEffect, useRef, useState } from 'react'
 interface StatsBarProps {
   stats: {
     volunteers: number
-    connections: number
     requests: number
+    visitors: number
   }
 }
 
 export default function StatsBar({ stats }: StatsBarProps) {
-  const [counts, setCounts] = useState({ volunteers: 0, connections: 0, requests: 0 })
+  const [counts, setCounts] = useState({ volunteers: 0, requests: 0, visitors: 0 })
   const [hasAnimated, setHasAnimated] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
 
@@ -45,13 +45,13 @@ export default function StatsBar({ stats }: StatsBarProps) {
 
       setCounts({
         volunteers: Math.floor(stats.volunteers * progress),
-        connections: Math.floor(stats.connections * progress),
         requests: Math.floor(stats.requests * progress),
+        visitors: Math.floor(stats.visitors * progress),
       })
 
       if (step >= steps) {
         clearInterval(timer)
-        setCounts(stats)
+        setCounts({ ...stats })
       }
     }, interval)
   }
@@ -70,71 +70,43 @@ export default function StatsBar({ stats }: StatsBarProps) {
         gridTemplateColumns: 'repeat(3, 1fr)',
         gap: '2rem',
       }}>
-        <div style={{
-          textAlign: 'center',
-          padding: '0 1rem',
-        }}>
+        <div style={{ textAlign: 'center', padding: '0 1rem' }}>
           <div className="font-playfair" style={{
-            fontSize: '2.5rem',
-            fontWeight: 700,
-            color: 'var(--amber-light)',
-            marginBottom: '0.5rem',
+            fontSize: '2.5rem', fontWeight: 700,
+            color: 'var(--amber-light)', marginBottom: '0.5rem',
           }}>
             {counts.volunteers}
           </div>
-          <div style={{
-            fontSize: '0.72rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.12em',
-            color: 'var(--muted)',
-          }}>
+          <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--muted)' }}>
             Volunteers
           </div>
         </div>
 
         <div style={{
-          textAlign: 'center',
-          padding: '0 1rem',
+          textAlign: 'center', padding: '0 1rem',
           borderLeft: '1px solid rgba(250,246,238,0.15)',
           borderRight: '1px solid rgba(250,246,238,0.15)',
         }}>
           <div className="font-playfair" style={{
-            fontSize: '2.5rem',
-            fontWeight: 700,
-            color: 'var(--amber-light)',
-            marginBottom: '0.5rem',
-          }}>
-            {counts.connections}
-          </div>
-          <div style={{
-            fontSize: '0.72rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.12em',
-            color: 'var(--muted)',
-          }}>
-            Messages Sent
-          </div>
-        </div>
-
-        <div style={{
-          textAlign: 'center',
-          padding: '0 1rem',
-        }}>
-          <div className="font-playfair" style={{
-            fontSize: '2.5rem',
-            fontWeight: 700,
-            color: 'var(--amber-light)',
-            marginBottom: '0.5rem',
+            fontSize: '2.5rem', fontWeight: 700,
+            color: 'var(--amber-light)', marginBottom: '0.5rem',
           }}>
             {counts.requests}
           </div>
-          <div style={{
-            fontSize: '0.72rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.12em',
-            color: 'var(--muted)',
-          }}>
+          <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--muted)' }}>
             Help Requests
+          </div>
+        </div>
+
+        <div style={{ textAlign: 'center', padding: '0 1rem' }}>
+          <div className="font-playfair" style={{
+            fontSize: '2.5rem', fontWeight: 700,
+            color: 'var(--amber-light)', marginBottom: '0.5rem',
+          }}>
+            {counts.visitors}
+          </div>
+          <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--muted)' }}>
+            Visitors
           </div>
         </div>
       </div>

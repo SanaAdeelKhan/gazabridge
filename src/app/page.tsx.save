@@ -1,4 +1,3 @@
-export const revalidate = 0
 
 
 import NewNavbar from '@/components/NewNavbar'
@@ -12,19 +11,19 @@ import ContactSection from '@/components/landing/ContactSection'
 import Footer from '@/components/landing/Footer'
 
 async function getStats() {
-  // Increment visitor count
-  await supabase.rpc('increment_visitors')
-
-  const [{ count: volunteers }, { count: requests }, visitorRes] = await Promise.all([
+  const [{ count: volunteers }, { count: requests }, { count: visitors }] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'volunteer'),
     supabase.from('requests').select('*', { count: 'exact', head: true }),
-    supabase.from('visitor_stats').select('count').eq('id', 1).single(),
+    supabase.from('visitor_stats').select('*', { count: 'exact', head: true }),
   ])
+
+  // Track this page visit (fire and forget)
+  supabase.from('visitor_stats').insert({ page: 'landing' }).then(() => {})
 
   return {
     volunteers: volunteers || 11,
     requests: requests || 11,
-    visitors: visitorRes?.data?.count || 1,
+    visitors: (visitors || 0) + 1,
   }
 }
 

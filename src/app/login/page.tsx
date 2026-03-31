@@ -1,4 +1,5 @@
 'use client'
+import React from 'react'
 import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
@@ -316,15 +317,15 @@ function LoginContent() {
                 { value: '11+', label: 'Help Requests' },
                 { value: 'Free', label: 'Always' },
               ].map((s, i, arr) => (
-                <>
-                  <div key={s.label} style={{ textAlign: 'center' }}>
+                <React.Fragment key={s.label}>
+                  <div style={{ textAlign: 'center' }}>
                     <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.8rem', fontWeight: 700, color: 'white' }}>{s.value}</div>
                     <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</div>
                   </div>
                   {i < arr.length - 1 && (
                     <div key={`div-${i}`} style={{ width: '1px', background: 'rgba(255,255,255,0.2)', alignSelf: 'stretch' }} />
                   )}
-                </>
+                </React.Fragment>
               ))}
             </div>
           </div>

@@ -93,8 +93,24 @@ function MessagesContent() {
       .from('profiles').select('*').eq('id', otherId).single()
     if (!profile) return
 
-    const volunteerIdVal = profile.role === 'volunteer' ? otherId : user!.id
-    const seekerIdVal = profile.role === 'volunteer' ? user!.id : otherId
+    // Handle all role combinations
+    let volunteerIdVal: string
+    let seekerIdVal: string
+    const myProfile = await supabase.from('profiles').select('role').eq('id', user!.id).single()
+    const myRole = myProfile.data?.role
+
+    if (myRole === 'volunteer' && profile.role === 'seeker') {
+      volunteerIdVal = user!.id
+      seekerIdVal = otherId
+    } else if (myRole === 'seeker' && profile.role === 'volunteer') {
+      volunteerIdVal = otherId
+      seekerIdVal = user!.id
+    } else {
+      // Both same role - use alphabetical order to ensure consistency
+      const ids = [user!.id, otherId].sort()
+      volunteerIdVal = ids[0]
+      seekerIdVal = ids[1]
+    }
 
     // Check if convo exists
     const { data: existing } = await supabase

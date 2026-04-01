@@ -172,7 +172,7 @@ function MessagesContent() {
   }
 
   function formatTime(date: string) {
-    const d = new Date(date)
+    const d = new Date(date.endsWith('Z') ? date : date + 'Z')
     const now = new Date()
     const isToday = d.toDateString() === now.toDateString()
     return isToday

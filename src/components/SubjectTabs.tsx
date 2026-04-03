@@ -25,7 +25,7 @@ type Counts = Record<string, { volunteers: number; seekers: number }>
 type Props = {
   mode: Mode
   activeLabel?: string
-  onChange?: (offerCat: string, requestCat: string) => void
+  onChange?: (offerCat: string, requestCat: string, label: string) => void
 }
 
 export default function SubjectTabs({ mode, activeLabel, onChange }: Props) {
@@ -42,8 +42,8 @@ export default function SubjectTabs({ mode, activeLabel, onChange }: Props) {
       const c: Counts = {}
       for (const tab of TABS) {
         c[tab.label] = {
-          volunteers: offers?.filter(o => o.category === tab.offerCat).length ?? 0,
-          seekers:    requests?.filter(r => r.category === tab.requestCat).length ?? 0,
+          volunteers: offers?.filter(o => o.category?.includes(tab.offerCat)).length ?? 0,
+          seekers:    requests?.filter(r => r.category?.includes(tab.requestCat)).length ?? 0,
         }
       }
       setCounts(c)
@@ -57,7 +57,7 @@ export default function SubjectTabs({ mode, activeLabel, onChange }: Props) {
       router.push(`/volunteers?cat=${encodeURIComponent(tab.offerCat)}`)
       return
     }
-    onChange?.(tab.offerCat, tab.requestCat)
+    onChange?.(tab.offerCat, tab.requestCat, tab.label)
   }
 
   const isVol   = mode === 'volunteers'

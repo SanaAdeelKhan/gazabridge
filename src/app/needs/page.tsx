@@ -75,7 +75,7 @@ export default function NeedsPage() {
 
   useEffect(() => {
     let result = requests
-    if (activecat) result = result.filter(r => r.category === activecat)
+    if (activecat) result = result.filter(r => r.category?.includes(activecat))
     if (search) result = result.filter(r =>
       r.description.toLowerCase().includes(search.toLowerCase()) ||
       r.profiles?.name?.toLowerCase().includes(search.toLowerCase())
@@ -134,7 +134,7 @@ export default function NeedsPage() {
         <SubjectTabs
           mode="needs"
           activeLabel={activelabel}
-          onChange={(_, requestCat) => { setActivecat(requestCat); setActivelabel(requestCat ? requestCat : '') }}
+          onChange={(_, requestCat, label) => { setActivecat(requestCat); setActivelabel(label) }}
         />
 
         {/* List */}

@@ -69,7 +69,7 @@ serve(async (req) => {
             <blockquote style="background: #fffbeb; padding: 16px; border-left: 4px solid #b45309; border-radius: 4px; margin: 16px 0;">
               ${record.content}
             </blockquote>
-            <a href="https://gazabridge.vercel.app/messages" 
+            <a href="https://gazabridge.netlify.app/messages" 
                style="display: inline-block; padding: 12px 24px; background: #b45309; color: white; border-radius: 8px; text-decoration: none; font-weight: 600;">
               Reply on GazaBridge →
             </a>
@@ -99,7 +99,7 @@ serve(async (req) => {
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
           <h2 style="color: #b45309;">You have a new match! 🕊️</h2>
           <p>Hi <strong>${toName ?? 'there'}</strong>! You have been connected with <strong>${otherName ?? 'someone'}</strong> on GazaBridge.</p>
-          <a href="https://gazabridge.vercel.app/messages" 
+          <a href="https://gazabridge.netlify.app/messages" 
              style="display: inline-block; padding: 12px 24px; background: #b45309; color: white; border-radius: 8px; text-decoration: none; font-weight: 600;">
             Start Chatting →
           </a>

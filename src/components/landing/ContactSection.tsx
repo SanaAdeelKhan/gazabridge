@@ -125,7 +125,7 @@ export default function ContactSection() {
                   fontSize: '1.05rem', 
                   fontWeight: 600, 
                   color: '#1A1A14' 
-                }}>gazabridge.vercel.app</div>
+                }}>gazabridge.netlify.app</div>
               </div>
             </div>
 

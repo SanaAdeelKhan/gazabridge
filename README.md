@@ -122,7 +122,7 @@ GazaBridge is open to contributions from developers, designers, and anyone who w
 
 ## Live Platform
 
-**[gazabridge.vercel.app](https://gazabridge.vercel.app)**
+**(https://gazabridge.netlify.app/)**
 
 &nbsp;
 

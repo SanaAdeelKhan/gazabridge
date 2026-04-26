@@ -61,7 +61,7 @@ GazaBridge is built with a modern, production-grade stack designed to be fast, r
 | Auth | Supabase Auth with Google OAuth |
 | Database | PostgreSQL via Supabase |
 | Real-Time | Supabase Realtime Subscriptions |
-| Deployment | Vercel with GitHub CI/CD |
+| Deployment | Netlify with GitHub CI/CD |
 
 The design language is warm and intentional, rooted in cream, olive, and amber tones that feel human rather than clinical, because the people using this platform deserve an experience that respects their dignity.
 
@@ -100,7 +100,7 @@ For Google OAuth to work locally, add `http://localhost:3000/auth/callback` as a
 
 ## Deploying to Production
 
-GazaBridge deploys automatically to Vercel on every push to the main branch. To deploy your own instance, connect the repository to a Vercel project, add the environment variables in the Vercel dashboard, and push. Vercel handles the rest.
+GazaBridge deploys automatically to Netlify on every push to the main branch. To deploy your own instance, connect the repository to a Netlify project, add the environment variables in the Netlify dashboard, and push. Netlify handles the rest.
 
 Before going live, make sure the **Supabase Site URL** is set to your production domain and that the production callback URL is registered in both Supabase and Google Cloud Console.
 

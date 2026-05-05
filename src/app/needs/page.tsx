@@ -171,7 +171,7 @@ export default function NeedsPage() {
                   <div style={{ flex: '1 1 160px', minWidth: 0 }}>
                     {/* Name visible to all, personal details hidden from guests */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1a2e' }}>{req.profiles?.name}</span>
+                      <Link href={`/profile/${req.profiles?.id}`} style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1a2e', textDecoration: 'none' }}>{req.profiles?.name}</Link>
                       {!isGuest && req.profiles?.is_admin && (
                         <span style={{ fontSize: '0.62rem', fontWeight: 700, padding: '2px 7px', borderRadius: '100px', background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>⚙️ Admin</span>
                       )}

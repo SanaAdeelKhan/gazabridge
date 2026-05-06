@@ -18,7 +18,6 @@ const categories_seek = ['📚 Learn a language', '💻 Learn tech / AI skills',
 const all_langs = ['English', 'Arabic / العربية', 'French', 'Urdu', 'Turkish', 'German', 'Other']
 
 export default function DashboardPage() {
-  // ── FIX 1: get isGuest from AuthContext ──
   const { user, signOut, isGuest, loading: authLoading } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [offers, setOffers] = useState<Offer[]>([])
@@ -36,9 +35,13 @@ export default function DashboardPage() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [success, setSuccess] = useState('')
 
+  const [editingRequestId, setEditingRequestId] = useState<string | null>(null)
+  const [editingOfferId, setEditingOfferId] = useState<string | null>(null)
+  const [editRequestForm, setEditRequestForm] = useState({ category: '', description: '' })
+  const [editOfferForm, setEditOfferForm] = useState({ category: '', description: '', availability: '' })
+
   const router = useRouter()
 
-  // Redirect to landing page if not logged in
   useEffect(() => {
     if (authLoading) return
     if (!user && !isGuest) {
@@ -46,7 +49,6 @@ export default function DashboardPage() {
     }
   }, [user, authLoading, isGuest, router])
 
-  // ── FIX 2: skip fetchData for guests, just stop loading ──
   useEffect(() => {
     if (authLoading) return
     if (user && !isGuest) {
@@ -57,7 +59,6 @@ export default function DashboardPage() {
     }
   }, [user, isGuest, authLoading])
 
-  // ── FIX 3: don't redirect guests to complete-profile ──
   useEffect(() => {
     if (loading || authLoading) return
     if (isGuest) return
@@ -136,6 +137,26 @@ export default function DashboardPage() {
     setRequests(r => r.filter(x => x.id !== id))
   }
 
+  async function updateRequest(id: string) {
+    setSaving(true)
+    await supabase.from('requests').update({ category: editRequestForm.category, description: editRequestForm.description }).eq('id', id)
+    setRequests(r => r.map(x => x.id === id ? { ...x, ...editRequestForm } : x))
+    setEditingRequestId(null)
+    setSuccess('Request updated!')
+    setTimeout(() => setSuccess(''), 3000)
+    setSaving(false)
+  }
+
+  async function updateOffer(id: string) {
+    setSaving(true)
+    await supabase.from('offers').update({ category: editOfferForm.category, description: editOfferForm.description, availability: editOfferForm.availability }).eq('id', id)
+    setOffers(o => o.map(x => x.id === id ? { ...x, ...editOfferForm } : x))
+    setEditingOfferId(null)
+    setSuccess('Offer updated!')
+    setTimeout(() => setSuccess(''), 3000)
+    setSaving(false)
+  }
+
   const inputStyle = { width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid #fde68a', fontSize: '0.9rem', outline: 'none', fontFamily: 'inherit', background: '#fffbeb', boxSizing: 'border-box' as const }
 
   if (!user && !isGuest) return null
@@ -145,7 +166,7 @@ export default function DashboardPage() {
       <div aria-hidden="true" style={{ position: 'fixed', inset: 0, zIndex: -1, pointerEvents: 'none', backgroundImage: 'radial-gradient(ellipse 70% 50% at 15% 20%, rgba(92,107,46,0.09) 0%, transparent 60%), radial-gradient(ellipse 60% 70% at 85% 80%, rgba(192,122,26,0.08) 0%, transparent 60%)', animation: 'shaderDrift 14s ease-in-out infinite alternate', backgroundSize: '200% 200%' }} />
       <Navbar />
 
-      {/* ── GUEST BANNER ── */}
+      {/* GUEST BANNER */}
       {isGuest && (
         <div style={{ background: 'rgba(192,122,26,0.08)', borderBottom: '1px solid rgba(192,122,26,0.2)', padding: '0.7rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '0.9rem', color: '#3D3D2E' }}>
@@ -169,7 +190,7 @@ export default function DashboardPage() {
             <div style={{ textAlign: 'center', padding: '60px', color: '#9ca3af' }}>Loading...</div>
           ) : (
             <>
-              {/* ── GUEST VIEW: no profile card, just a welcome ── */}
+              {/* GUEST VIEW */}
               {isGuest ? (
                 <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #fde68a', padding: '32px', marginBottom: '32px', textAlign: 'center' }}>
                   <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🧭</div>
@@ -193,7 +214,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <>
-                  {/* Profile card — only for registered users */}
+                  {/* Profile card */}
                   <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #fde68a', padding: '32px', marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
                     <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '1.3rem', flexShrink: 0 }}>
                       {profile?.name?.slice(0, 2).toUpperCase()}
@@ -254,16 +275,16 @@ export default function DashboardPage() {
                           <input value={editForm.country} onChange={e => setEditForm(f => ({ ...f, country: e.target.value }))} style={inputStyle} placeholder="Where are you based?" />
                         </div>
                       </div>
-                      <div style={{ marginBottom: "16px" }}>
-                        <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, marginBottom: "6px" }}>LinkedIn Profile URL</label>
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>LinkedIn Profile URL</label>
                         <input value={editForm.linkedin} onChange={e => setEditForm(f => ({ ...f, linkedin: e.target.value }))} style={inputStyle} placeholder="https://linkedin.com/in/yourname" />
                       </div>
-                      <div style={{ marginBottom: "16px" }}>
-                        <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, marginBottom: "6px" }}>WhatsApp Number (optional)</label>
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>WhatsApp Number (optional)</label>
                         <input value={editForm.whatsapp_number} onChange={e => setEditForm(f => ({ ...f, whatsapp_number: e.target.value }))} style={inputStyle} placeholder="e.g. 923XXXXXXXXX" />
                       </div>
-                      <div style={{ marginBottom: "16px" }}>
-                        <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, marginBottom: "6px" }}>WhatsApp Group Link (optional)</label>
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>WhatsApp Group Link (optional)</label>
                         <input value={editForm.whatsapp_group} onChange={e => setEditForm(f => ({ ...f, whatsapp_group: e.target.value }))} style={inputStyle} placeholder="https://chat.whatsapp.com/..." />
                       </div>
                       <div style={{ marginBottom: '20px' }}>
@@ -316,17 +337,19 @@ export default function DashboardPage() {
                     </div>
                   )}
 
-                  {/* Offers Section */}
+                  {/* ── OFFERS SECTION ── */}
                   <div style={{ marginTop: '40px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                       <div>
                         <h2 className="font-cormorant" style={{ fontSize: '1.6rem', fontWeight: 700 }}>🙌 Your Offers</h2>
-                        <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '2px' }}>Skills or time you're offering to others</p>
+                        <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '2px' }}>Skills or time you&apos;re offering to others</p>
                       </div>
                       <button onClick={() => { setShowAddOffer(!showAddOffer); setShowAddRequest(false) }} style={{ padding: '10px 24px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit' }}>
                         {showAddOffer ? '✕ Cancel' : '+ Add Offer'}
                       </button>
                     </div>
+
+                    {/* Add Offer Form */}
                     {showAddOffer && (
                       <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #fde68a', padding: '28px', marginBottom: '20px' }}>
                         <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>Add a new offer</h3>
@@ -356,6 +379,8 @@ export default function DashboardPage() {
                         </button>
                       </div>
                     )}
+
+                    {/* Offers List */}
                     {offers.length === 0 ? (
                       <div style={{ textAlign: 'center', padding: '48px', border: '2px dashed #fde68a', borderRadius: '20px' }}>
                         <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📭</div>
@@ -363,31 +388,82 @@ export default function DashboardPage() {
                         <button onClick={() => setShowAddOffer(true)} style={{ padding: '10px 24px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.875rem' }}>Post Your First Offer</button>
                       </div>
                     ) : offers.map(offer => (
-                      <div key={offer.id} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #fde68a', padding: '24px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', gap: '16px' }}>
-                        <div style={{ flex: 1 }}>
-                          <span style={{ fontSize: '0.75rem', background: '#fffbeb', color: '#b45309', padding: '3px 12px', borderRadius: '100px', fontWeight: 600 }}>{offer.category}</span>
-                          <p style={{ color: '#555', fontSize: '0.875rem', lineHeight: 1.6, marginTop: '10px' }}>{offer.description}</p>
-                          {offer.availability && <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '6px' }}>⏱ {offer.availability}</p>}
-                        </div>
-                        <button onClick={() => deleteOffer(offer.id)} style={{ color: '#d1d5db', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0, alignSelf: 'flex-start' }}
-                          onMouseOver={e => (e.target as HTMLElement).style.color = '#ef4444'}
-                          onMouseOut={e => (e.target as HTMLElement).style.color = '#d1d5db'}>Delete</button>
-                        <OfferMatches userId={user!.id} offerCategory={offer.category} offerDescription={offer.description} userLanguages={profile?.languages || []} />
+                      <div key={offer.id} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #fde68a', padding: '24px', marginBottom: '10px' }}>
+                        {editingOfferId === offer.id ? (
+                          /* Edit Offer Form */
+                          <div>
+                            <div style={{ marginBottom: '12px' }}>
+                              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Category</label>
+                              <select aria-label="Edit offer category" value={editOfferForm.category} onChange={e => setEditOfferForm(f => ({ ...f, category: e.target.value }))} style={{ ...inputStyle, background: '#fff' }}>
+                                {categories_vol.map(c => <option key={c}>{c}</option>)}
+                              </select>
+                            </div>
+                            <div style={{ marginBottom: '12px' }}>
+                              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Description</label>
+                              <textarea value={editOfferForm.description} onChange={e => setEditOfferForm(f => ({ ...f, description: e.target.value }))} style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' as const }} />
+                            </div>
+                            <div style={{ marginBottom: '16px' }}>
+                              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Availability</label>
+                              <select aria-label="Edit availability" value={editOfferForm.availability} onChange={e => setEditOfferForm(f => ({ ...f, availability: e.target.value }))} style={{ ...inputStyle, background: '#fff' }}>
+                                <option>1–2 hours/week</option>
+                                <option>3–5 hours/week</option>
+                                <option>5–10 hours/week</option>
+                                <option>10+ hours/week</option>
+                              </select>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button onClick={() => updateOffer(offer.id)} disabled={saving} style={{ padding: '8px 20px', borderRadius: '100px', background: '#d97706', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem', opacity: saving ? 0.6 : 1 }}>
+                                {saving ? 'Saving...' : 'Save'}
+                              </button>
+                              <button onClick={() => setEditingOfferId(null)} style={{ padding: '8px 20px', borderRadius: '100px', border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem' }}>
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          /* View Offer */
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px' }}>
+                            <div style={{ flex: 1 }}>
+                              <span style={{ fontSize: '0.75rem', background: '#fffbeb', color: '#b45309', padding: '3px 12px', borderRadius: '100px', fontWeight: 600 }}>{offer.category}</span>
+                              <p style={{ color: '#555', fontSize: '0.875rem', lineHeight: 1.6, marginTop: '10px' }}>{offer.description}</p>
+                              {offer.availability && <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '6px' }}>⏱ {offer.availability}</p>}
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
+                              <button
+                                onClick={() => { setEditingOfferId(offer.id); setEditOfferForm({ category: offer.category, description: offer.description, availability: offer.availability }) }}
+                                style={{ color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}
+                                onMouseOver={e => (e.target as HTMLElement).style.color = '#d97706'}
+                                onMouseOut={e => (e.target as HTMLElement).style.color = '#6b7280'}>
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => deleteOffer(offer.id)}
+                                style={{ color: '#d1d5db', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}
+                                onMouseOver={e => (e.target as HTMLElement).style.color = '#ef4444'}
+                                onMouseOut={e => (e.target as HTMLElement).style.color = '#d1d5db'}>
+                                Delete
+                              </button>
+                            </div>
+                            <OfferMatches userId={user!.id} offerCategory={offer.category} offerDescription={offer.description} userLanguages={profile?.languages || []} />
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
 
-                  {/* Requests Section */}
+                  {/* ── REQUESTS SECTION ── */}
                   <div style={{ marginTop: '48px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                       <div>
                         <h2 className="font-cormorant" style={{ fontSize: '1.6rem', fontWeight: 700 }}>🌟 Your Requests</h2>
-                        <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '2px' }}>Help or resources you're looking for</p>
+                        <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '2px' }}>Help or resources you&apos;re looking for</p>
                       </div>
                       <button onClick={() => { setShowAddRequest(!showAddRequest); setShowAddOffer(false) }} style={{ padding: '10px 24px', borderRadius: '100px', background: '#16a34a', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit' }}>
                         {showAddRequest ? '✕ Cancel' : '+ Add Request'}
                       </button>
                     </div>
+
+                    {/* Add Request Form */}
                     {showAddRequest && (
                       <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #d1fae5', padding: '28px', marginBottom: '20px' }}>
                         <h3 style={{ fontWeight: 700, marginBottom: '20px' }}>Add a new request</h3>
@@ -407,6 +483,8 @@ export default function DashboardPage() {
                         </button>
                       </div>
                     )}
+
+                    {/* Requests List */}
                     {requests.length === 0 ? (
                       <div style={{ textAlign: 'center', padding: '48px', border: '2px dashed #d1fae5', borderRadius: '20px' }}>
                         <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📭</div>
@@ -414,21 +492,60 @@ export default function DashboardPage() {
                         <button onClick={() => setShowAddRequest(true)} style={{ padding: '10px 24px', borderRadius: '100px', background: '#16a34a', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.875rem' }}>Post Your First Request</button>
                       </div>
                     ) : requests.map(req => (
-                      <div key={req.id} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #d1fae5', padding: '24px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', gap: '16px' }}>
-                        <div style={{ flex: 1 }}>
-                          <span style={{ fontSize: '0.75rem', background: '#f0fdf4', color: '#16a34a', padding: '3px 12px', borderRadius: '100px', fontWeight: 600 }}>{req.category}</span>
-                          <p style={{ color: '#555', fontSize: '0.875rem', lineHeight: 1.6, marginTop: '10px' }}>{req.description}</p>
-                        </div>
-                        <button onClick={() => deleteRequest(req.id)} style={{ color: '#d1d5db', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0, alignSelf: 'flex-start' }}
-                          onMouseOver={e => (e.target as HTMLElement).style.color = '#ef4444'}
-                          onMouseOut={e => (e.target as HTMLElement).style.color = '#d1d5db'}>Delete</button>
-                        <RequestMatches userId={user!.id} requestCategory={req.category} requestDescription={req.description} userLanguages={profile?.languages || []} />
+                      <div key={req.id} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #d1fae5', padding: '24px', marginBottom: '10px' }}>
+                        {editingRequestId === req.id ? (
+                          /* Edit Request Form */
+                          <div>
+                            <div style={{ marginBottom: '12px' }}>
+                              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Category</label>
+                              <select aria-label="Edit request category" value={editRequestForm.category} onChange={e => setEditRequestForm(f => ({ ...f, category: e.target.value }))} style={{ ...inputStyle, border: '1.5px solid #d1fae5', background: '#f0fdf4' }}>
+                                {categories_seek.map(c => <option key={c}>{c}</option>)}
+                              </select>
+                            </div>
+                            <div style={{ marginBottom: '12px' }}>
+                              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px' }}>Description</label>
+                              <textarea value={editRequestForm.description} onChange={e => setEditRequestForm(f => ({ ...f, description: e.target.value }))} style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' as const, border: '1.5px solid #d1fae5', background: '#f0fdf4' }} />
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button onClick={() => updateRequest(req.id)} disabled={saving} style={{ padding: '8px 20px', borderRadius: '100px', background: '#16a34a', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem', opacity: saving ? 0.6 : 1 }}>
+                                {saving ? 'Saving...' : 'Save'}
+                              </button>
+                              <button onClick={() => setEditingRequestId(null)} style={{ padding: '8px 20px', borderRadius: '100px', border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem' }}>
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          /* View Request */
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px' }}>
+                            <div style={{ flex: 1 }}>
+                              <span style={{ fontSize: '0.75rem', background: '#f0fdf4', color: '#16a34a', padding: '3px 12px', borderRadius: '100px', fontWeight: 600 }}>{req.category}</span>
+                              <p style={{ color: '#555', fontSize: '0.875rem', lineHeight: 1.6, marginTop: '10px' }}>{req.description}</p>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
+                              <button
+                                onClick={() => { setEditingRequestId(req.id); setEditRequestForm({ category: req.category, description: req.description }) }}
+                                style={{ color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}
+                                onMouseOver={e => (e.target as HTMLElement).style.color = '#16a34a'}
+                                onMouseOut={e => (e.target as HTMLElement).style.color = '#6b7280'}>
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => deleteRequest(req.id)}
+                                style={{ color: '#d1d5db', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}
+                                onMouseOver={e => (e.target as HTMLElement).style.color = '#ef4444'}
+                                onMouseOut={e => (e.target as HTMLElement).style.color = '#d1d5db'}>
+                                Delete
+                              </button>
+                            </div>
+                            <RequestMatches userId={user!.id} requestCategory={req.category} requestDescription={req.description} userLanguages={profile?.languages || []} />
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
                 </>
               )}
-
               <div style={{ height: '60px' }} />
             </>
           )}

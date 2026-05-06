@@ -84,6 +84,8 @@ export default function DashboardPage() {
   }
 
   async function saveProfile() {
+    const validLinkedin = !editForm.linkedin || editForm.linkedin.startsWith('https://linkedin.com/') || editForm.linkedin.startsWith('https://www.linkedin.com/')
+    if (!validLinkedin) { alert('Please enter a valid LinkedIn URL (e.g. https://linkedin.com/in/yourname)'); return }
     setSavingProfile(true)
     const { error } = await supabase.from('profiles').update({
       name: editForm.name, country: editForm.country, linkedin: editForm.linkedin,

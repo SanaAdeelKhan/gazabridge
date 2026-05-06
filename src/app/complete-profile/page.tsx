@@ -70,6 +70,8 @@ export default function CompleteProfilePage() {
       if (!details.country.trim()) { setError('Country is required.'); return false }
       if (!details.gender) { setError('Please select your gender.'); return false }
       if (!details.linkedin.trim()) { setError('LinkedIn profile is required.'); return false }
+      const validLinkedin = details.linkedin.startsWith('https://linkedin.com/') || details.linkedin.startsWith('https://www.linkedin.com/')
+      if (!validLinkedin) { setError('Please enter a valid LinkedIn URL (e.g. https://linkedin.com/in/yourname)'); return false }
       if (details.languages.length === 0) { setError('Please select at least one language.'); return false }
     }
     if (step === 3) {
